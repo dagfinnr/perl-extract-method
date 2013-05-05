@@ -6,9 +6,10 @@ A serious attempt to get serious refactoring tool support for Perl code.
 How to try it
 -------------
 
-1. Clone the repository.
-2. Add the lib directory to your Perl include path.
-3. Copy `share/extract_method.vim` to `ftplugin/perl` in your vim directory.
+1. Install PPIx::EditorTools and App::EditorTools from CPAN.
+2. Clone the repository.
+3. Add the lib directory to your Perl include path.
+4. Copy `share/extract_method.vim` to `ftplugin/perl` in your vim directory.
 
 What
 ----
