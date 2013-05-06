@@ -95,4 +95,13 @@ subtest 'does not duplicate $self' => sub  {
     setup('$self->foo(42);my $foo; my $bar = $baz + $qux;');
     is($extract->args_statement(), 'my ($self, $qux, $baz) = @_;')
 };
+
+#TODO: {
+#    local $TODO = 'deal with interpolated variables';
+    subtest 'can deal with interpolated variables' => sub  {
+        setup('my $foo = "$bar"');
+        is_deeply( [ $extract->undeclared_scalars->elements ], [ '$bar' ]);
+    };
+#};
+
 done_testing();

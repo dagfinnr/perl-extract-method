@@ -46,3 +46,14 @@ riddled with dependencies that make it hard to add tests. Doing a safe
 refactoring may be what you need to get you started by isolating a part of the
 code that can be unit tests.
 
+Current limitations
+-------------------
+
+After trying this out a few times, I can see that my approach so far is
+insufficient for safe refactoring. I have tried to process only the lines that
+are to be extracted. This is a somewhat less sophisticated approach the one
+used in the existing PPIx::EditorTools refactorings. These parse the entire
+Perl file and locate the relevant parts in the parse tree PPI::Document.
+I think I will have to do this too. It's necessary to analyze the scope that
+the selected lines are contained in. I thought I might be able to hack my way
+around that problem, but now I believe it's not worth it.
