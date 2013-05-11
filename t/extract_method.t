@@ -2,11 +2,18 @@ use Test::More;
 use PPIx::EditorTools::ExtractMethod;
 use Data::Dumper;
 
-my $extract = PPIx::EditorTools::ExtractMethod->new();
+my $extract;
 
 sub setup {
-    my $code = shift || 'my $foo; my $bar = $baz + $qux;';
+    $extract = PPIx::EditorTools::ExtractMethod->new();
+    my $code = shift || q!if ($condition) {
+        #somewhat random code, this
+        my $foo; my $bar = $baz + $qux + $quux;
+        return $quux;
+    }!;
     $extract->code($code);
+    $extract->start_selected(2);
+    $extract->end_selected(3);
 }
 
 sub trim_code {
@@ -15,93 +22,101 @@ sub trim_code {
     return $code;
 }
 
-subtest 'can find all used scalar variables' => sub  {
-    setup(q(
-        if ($width && $height && $width < $height) {
-            my $ratio = $maxwidth/$width;
-            $newwidth = $maxwidth;
-            $newheight = $height * $ratio;
-        }
-    ));
-    ok(
-        Set::Scalar->new(qw($height $maxwidth $newheight $newwidth $ratio $width ))
-        == $extract->used_scalars
-    );
-};
-
-subtest 'can identify single scalar variable declaration' => sub  {
-    setup();
-    ok( Set::Scalar->new(qw( $foo $bar )) == $extract->declared_scalars);
-};
-
-subtest 'can identify undeclared scalars' => sub  {
-    setup();
-    ok( Set::Scalar->new(qw( $baz $qux )) == $extract->undeclared_scalars);
-};
-
-subtest 'can generate arguments initialization statement' => sub  {
-    setup();
-    is($extract->args_statement(), 'my ($self, $qux, $baz) = @_;')
-};
-
-subtest 'can generate arguments initialization statement with no variables' => sub  {
-    setup('# only a comment');
-    is($extract->args_statement(), 'my $self = shift;')
-};
-
-subtest 'can generate call to extracted method' => sub  {
-    setup();
-    is(
-        $extract->call_statement('new_method'), 
-        'my ($foo, $bar);' . "\n" .
-        '($qux, $foo, $baz, $bar) = $self->new_method($qux, $baz);'
-    )
-};
-
-subtest 'can generate call to extracted method with no variables' => sub  {
-    setup('# only a comment');
-    is($extract->call_statement('new_method'), '$self->new_method();')
-};
-
-subtest 'can generate extracted method' => sub  {
-    setup();
-    my $method = q(
-    sub new_method {
-        my ($self, $qux, $baz) = @_;
-        my $foo; my $bar = $baz + $qux;
-        return ($qux, $foo, $baz, $bar);
-    });
-    is(trim_code($extract->method_body('new_method')), trim_code($method));
-};
-
-subtest 'does not register arrays as scalars' => sub  {
-    setup('my $foo = $bar[0], @bar, $baz;');
-    is_deeply( [ $extract->undeclared_scalars->elements ], [ '$baz' ]);
-};
-
-subtest 'does not register array declarations as scalar declarations' => sub  {
-    setup('my @foo = ($baz);');
-    ok($extract->declared_scalars->is_empty());
-};
-
-subtest 'does not register hashes as scalars' => sub  {
-    setup('my $foo = $bar{qux}, %bar, $baz;');
-    is_deeply( [ $extract->undeclared_scalars->elements ], [ '$baz' ]);
-};
-
-subtest 'does not duplicate $self' => sub  {
-    setup('$self->foo(42);');
-    is($extract->args_statement(), 'my $self = shift;');
-    setup('$self->foo(42);my $foo; my $bar = $baz + $qux;');
-    is($extract->args_statement(), 'my ($self, $qux, $baz) = @_;')
-};
-
 #TODO: {
 #    local $TODO = 'deal with interpolated variables';
-    subtest 'can deal with interpolated variables' => sub  {
-        setup('my $foo = "$bar"');
-        is_deeply( [ $extract->undeclared_scalars->elements ], [ '$bar' ]);
-    };
+#    subtest 'can deal with interpolated variables' => sub  {
+#        setup('my $foo = "$bar"');
+#        is_deeply( [ $extract->undeclared_scalars->elements ], [ '$bar' ]);
+#    };
 #};
 
+subtest 'can identify variable in inserted scope' => sub  {
+    setup();
+    my $qux = $extract->used_variables->{qux};
+    is_deeply([ $qux->used_in_scopes->elements ], [ qw( inserted ) ]);
+};
+
+subtest 'can add sub around selected code' => sub  {
+    setup();
+    my $expected = q!if ($condition) {
+        sub ppi_temp {
+        #somewhat random code, this
+        my $foo; my $bar = $baz + $qux + $quux;
+        }
+        return $quux;
+    }!;
+    is(trim_code($extract->code_with_sub), trim_code($expected));
+};
+
+subtest 'can find used variables' => sub  {
+    setup();
+    is($extract->used_variables->{bar}->name, 'bar');
+    is($extract->used_variables->{baz}->name, 'baz');
+    is($extract->used_variables->{quux}->name, 'quux');
+    is($extract->used_variables->{qux}->name, 'qux');
+};
+
+
+subtest 'can locate inserted sub in PPI document' => sub  {
+    setup();
+    isa_ok($extract->inserted, 'PPI::Structure::Block');
+    ok($extract->inserted->scope);
+    isa_ok($extract->inserted->parent, 'PPI::Statement::Sub');
+};
+
+subtest 'can locate outside scope' => sub  {
+    setup();
+    isa_ok($extract->outside, 'PPI::Structure::Block');
+    isa_ok($extract->outside->parent, 'PPI::Statement::Compound');
+};
+
+subtest 'can identify variable in two scopes' => sub  {
+    setup();
+    my $quux = $extract->used_variables->{quux};
+    is_deeply([ $quux->used_in_scopes->elements ], [ qw( inserted outside ) ]);
+};
+
+subtest 'can identify variable in inside scope' => sub  {
+    setup(q!if ($condition) {
+        #somewhat random code, this
+        if ($other_condition) {
+            $corge = 1;
+        }
+        my $foo; my $bar = $baz + $qux + $quux;
+        return $quux;
+    }!);
+    $extract->end_selected(5);
+    my $corge = $extract->used_variables->{corge};
+    is($corge->name, 'corge');
+    is_deeply([ $corge->used_in_scopes->elements ], [ qw( inside ) ]);
+};
+
+subtest 'can tell variable is declared in inserted scope' => sub  {
+    setup();
+    my $foo = $extract->used_variables->{foo};
+    is ($foo->declared_in_scope, 'inserted');
+};
+
+subtest 'can tell whether a symbol is part of a declaration' => sub  {
+    my $code = 'my $foo = $bar';
+    my $ppi = PPI::Document->new( \$code );
+    my $declared = $ppi->find( sub { $_[1]->content eq '$foo' } )->[0];
+    my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
+        ppi_symbol => $declared);
+    ok ($occurrence->is_declaration);
+    my $used = $ppi->find( sub { $_[1]->content eq '$bar' } )->[0];
+    $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
+        ppi_symbol => $used);
+    ok (!$occurrence->is_declaration);
+};
+
+subtest 'can generate variable name and id' => sub  {
+    my $code = 'my $foo = $bar';
+    my $ppi = PPI::Document->new( \$code );
+    my $used = $ppi->find( sub { $_[1]->content eq '$bar' } )->[0];
+    my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
+        ppi_symbol => $used);
+    is($occurrence->variable_name, 'bar');
+
+};
 done_testing();

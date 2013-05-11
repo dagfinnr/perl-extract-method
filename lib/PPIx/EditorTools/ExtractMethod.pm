@@ -1,91 +1,73 @@
 package PPIx::EditorTools::ExtractMethod;
 use PPI::Document;
+use PPIx::EditorTools;
+use PPIx::EditorTools::KnownScopes;
+use PPIx::EditorTools::ExtractMethod::Variable;
+use PPIx::EditorTools::ExtractMethod::VariableOccurrence;
 use Set::Scalar;
 use Moose;
 
-sub Set::Scalar::as_list {
+has 'code'   => ( is => 'rw', isa => 'Str' );
+
+has 'code_with_sub'   => ( 
+    is => 'rw', 
+    isa => 'Str',
+    lazy => 1,
+    builder => '_build_code_with_sub',
+);
+
+has 'ppi'   => ( 
+    is => 'rw', 
+    isa => 'PPI::Document',
+    lazy => 1,
+    builder => '_build_ppi',
+);
+
+has 'known_scopes'   => ( 
+    is => 'rw', 
+    isa => 'PPIx::EditorTools::KnownScopes',
+    lazy => 1,
+    default => sub { PPIx::EditorTools::KnownScopes->new(
+            ppi => $_[0]->ppi,
+            start_selected => $_[0]->start_selected
+        ) },
+    handles => [ qw/ inserted enclosing_scope outside enclosing_scope_name enclosing_known_scope_name scopes scope_category /],
+);
+
+has 'start_selected'   => ( is => 'rw', isa => "Int" );
+has 'end_selected'   => ( is => 'rw', isa => "Int" );
+
+sub _build_code_with_sub {
     my $self = shift;
-    return '(' . join(', ', $self->elements) . ')';
+    my @lines = split("\n", $self->code);
+    splice @lines, $self->end_selected, 0, '}';
+    splice @lines, $self->start_selected - 1, 0, '   sub ppi_temp {';
+    return join "\n", @lines;
 }
 
-sub PPI::Token::Symbol::is_hash { $_[0]->content =~ /^%/; }
-
-sub PPI::Token::Symbol::is_array { $_[0]->content =~ /^@/; }
-
-sub PPI::Token::Symbol::is_hash_or_array_element {
+sub _build_ppi {
     my $self = shift;
-    my $next = $self->next_sibling;
-    return $next && $next->isa('PPI::Structure::Subscript');
+    my $code = $self->code_with_sub;
+    return PPI::Document->new(\$code);
 }
 
-has 'code'   => ( is => 'rw', isa => 'Str', trigger => \&parse );
-has 'ppi'   => ( is => 'rw', isa => 'PPI::Document' );
-
-sub method_body {
-    my ($self, $method_name) = @_;
-    return 'sub ' . $method_name . ' {' . "\n" .
-    '    ' . $self->args_statement() . "\n" .
-    $self->code . "\n" .
-    'return ' . $self->used_scalars->as_list . ";\n" .
-    '}';
-}
-
-sub call_statement {
-    my ($self, $method_name) = @_;
-    my $statement = '';
-    if (!$self->declared_scalars->is_empty()) {
-        $statement .= 'my ' . $self->declared_scalars->as_list . ";\n";
-    }
-    if (!$self->used_scalars->is_empty()) {
-        $statement .= $self->used_scalars->as_list . ' = ';
-    }
-    $statement .= '$self->' . $method_name . 
-    '(' . $self->undeclared_list . ');';
-    return $statement;
-}
-
-sub args_statement {
+sub used_variables {
     my $self = shift;
-    return 'my $self = shift;' if $self->undeclared_scalars->is_empty();
-    return 'my ($self, ' . $self->undeclared_list . ') = @_;';
-}
-
-sub undeclared_list {
-    join(', ', $_[0]->undeclared_scalars->elements);
-}
-
-sub used_scalars {
-    my $self = shift;
-    my $scalars = Set::Scalar->new;
+    my $vars = {};
     foreach my $symbol ($self->symbols) {
         my $var = $symbol->content;
-        next if $symbol->is_hash() || $symbol->is_array() || 
-        $symbol->is_hash_or_array_element();
-        $scalars->insert($var);
+        my $name = substr( $var, 1 );
+        if (! defined $vars->{ $name } ) {
+            $vars->{ $name } = PPIx::EditorTools::ExtractMethod::Variable->new(name => $name);
+        }
+        if ($symbol->is_declaration) {
+            $vars->{ $name }->declared_in_scope($self->scope_category($symbol));
+        }
+        else {
+            $vars->{ $name }->used_in_scope($self->scope_category($symbol));
+        }
     }
-    $scalars->delete('$self');
-    return $scalars;
-}
-
-sub declared_scalars {
-    my $self = shift;
-    my $scalars = Set::Scalar->new;
-    foreach my $node ($self->variable_declarations()) {
-        my $symbol = $node->find_first('PPI::Token::Symbol');
-        next if $symbol->is_array() || $symbol->is_hash();
-        $scalars->insert($symbol->content);
-    }
-    return $scalars;
-}
-
-sub undeclared_scalars {
-    my $self = shift;
-    return $self->used_scalars - $self->declared_scalars;
-}
-
-sub parse {
-    my $self = shift;
-    $self->ppi(PPI::Document->new(\($self->code)));
+    return $vars;
 }
 
 sub symbols {
@@ -94,7 +76,7 @@ sub symbols {
         sub { $_[1]->isa('PPI::Token::Symbol') and $_[1]->content }
     );
     $symbols ||= [];
-    return wantarray ? @$symbols : $symbols;
+    return map { PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(ppi_symbol => $_) } @$symbols;
 }
 
 sub variable_declarations {
@@ -103,7 +85,8 @@ sub variable_declarations {
         sub { $_[1]->isa('PPI::Statement::Variable') }
     );
     $symbols ||= [];
-    return wantarray ? @$symbols : $symbols;
+    return @$symbols;
 }
+
 
 1;
