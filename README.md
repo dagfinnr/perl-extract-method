@@ -65,3 +65,16 @@ Earlier, I said:
 
 I'm still working on this. It's finished except for generating the actual code
 at the end.
+
+Current design
+--------------
+
+The code works as a pipeline, with each class doing one stage of processing.
+
+Analyzer -> VariableSorter -> CodeGenerator
+
+CodeGenerator is not yet implemented, but the idea is that the Analyzer gleans
+relevant information from the code about variable use and declarations. Then
+the VariableSorter sort the detected variables into "buckets" depending on how
+they should be treated in the extracted code. Finally the CodeGenerator
+generates the method body and the call to the method.
