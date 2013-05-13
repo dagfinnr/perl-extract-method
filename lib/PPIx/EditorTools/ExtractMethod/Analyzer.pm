@@ -19,7 +19,7 @@ has 'ppi'   => (
 has 'start_selected'   => ( is => 'rw', isa => "Int" );
 has 'end_selected'   => ( is => 'rw', isa => "Int" );
 
-sub found_variables {
+sub variables_in_selected {
     my $self = shift;
     my $symbols = $self->ppi->find(
         sub {
@@ -77,9 +77,9 @@ sub variables_after_selected {
     return \%vars;
 }
 
-sub relevant_variables {
+sub output_variables {
     my $self = shift;
-    my $inside_vars = $self->found_variables;
+    my $inside_vars = $self->variables_in_selected;
     my $after_vars = $self->variables_after_selected;
     foreach my $id ( keys %$inside_vars ) {
         if (defined $after_vars->{$id}) {

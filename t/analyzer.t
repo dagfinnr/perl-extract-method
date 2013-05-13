@@ -28,7 +28,7 @@ sub setup {
 
 subtest 'can identify variables within selected region' => sub  {
     setup();
-    my $vars = $analyzer->found_variables;
+    my $vars = $analyzer->variables_in_selected;
     is_deeply( [ sort keys %{$vars} ], [ qw / $bar $baz $foo $inside $qux / ]);
 };
 
@@ -40,7 +40,7 @@ subtest 'can identify variables in current scope after selected region' => sub  
 
 subtest 'identified variables are variable objects' => sub  {
     setup();
-    my $vars = $analyzer->found_variables;
+    my $vars = $analyzer->variables_in_selected;
     my $baz = $vars->{'$baz'};
     isa_ok($baz, 'PPIx::EditorTools::ExtractMethod::Variable');
     is($baz->name, 'baz');
@@ -48,20 +48,20 @@ subtest 'identified variables are variable objects' => sub  {
 };
 
 subtest 'can identify variable declared inside selected region' => sub  {
-    my $vars = $analyzer->found_variables;
+    my $vars = $analyzer->variables_in_selected;
     my $foo = $vars->{'$foo'};
     is($foo->declared_in_scope, 'selected');
 };
 
 subtest 'can identify variable declared outside selected region' => sub  {
-    my $vars = $analyzer->found_variables;
+    my $vars = $analyzer->variables_in_selected;
     my $foo = $vars->{'$qux'};
     is($foo->declared_in_scope, 'before');
 };
 
 subtest 'can know variable is used after selected region' => sub {
     setup();
-    my $vars = $analyzer->relevant_variables;
+    my $vars = $analyzer->output_variables;
     ok ($vars->{ '$bar' }->used_after);
     ok (!$vars->{ '$inside' }->used_after);
     ok (!$vars->{ '$foo' }->used_after);
@@ -69,7 +69,7 @@ subtest 'can know variable is used after selected region' => sub {
 
 subtest 'ignores variables completely outside' => sub {
     setup();
-    my $vars = $analyzer->relevant_variables;
+    my $vars = $analyzer->output_variables;
     ok (! defined $vars->{ '$grault' });
 };
 
