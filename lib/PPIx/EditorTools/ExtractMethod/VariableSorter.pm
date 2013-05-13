@@ -14,34 +14,71 @@ has 'return_bucket' => (
     },
 );
 
-has 'pass_and_return_bucket' => (
+has 'pass_bucket' => (
     traits  => ['Array'],
     is      => 'ro',
     isa     => 'ArrayRef[PPIx::EditorTools::ExtractMethod::Variable]',
     default => sub { [] },
     handles => {
-        add_to_pass_and_return_bucket  => 'push',
+        add_to_pass_bucket  => 'push',
     },
 );
+
+has 'return_by_ref_bucket' => (
+    traits  => ['Array'],
+    is      => 'ro',
+    isa     => 'ArrayRef[PPIx::EditorTools::ExtractMethod::Variable]',
+    default => sub { [] },
+    handles => {
+        add_to_return_by_ref_bucket  => 'push',
+    },
+);
+
+has 'pass_by_ref_bucket' => (
+    traits  => ['Array'],
+    is      => 'ro',
+    isa     => 'ArrayRef[PPIx::EditorTools::ExtractMethod::Variable]',
+    default => sub { [] },
+    handles => {
+        add_to_pass_by_ref_bucket  => 'push',
+    },
+);
+
+sub to_pass {
+    my ($self, $var) = @_;
+    if ($var->type eq '$') {
+        $self->add_to_pass_bucket($var);
+    }
+    else {
+        $self->add_to_pass_by_ref_bucket($var);
+    }
+}
+
+sub to_return {
+    my ($self, $var) = @_;
+    if ($var->type eq '$') {
+        $self->add_to_return_bucket($var);
+    }
+    else {
+        $self->add_to_return_by_ref_bucket($var);
+    }
+}
 
 sub process_input {
     my $self = shift;
     foreach my $var (values %{$self->input}) {
-        if ($var->declared_in_scope eq 'inserted' && $var->used_in_scopes->has('outside'))
+        if ($var->declared_in_scope eq 'before' && !$var->used_after)
         {
-            $self->add_to_return_bucket($var);
+            $self->to_pass($var);
         }
-        if ($var->declared_in_scope eq 'document' && $var->used_in_scopes->has('inserted'))
+        if ($var->declared_in_scope eq 'inside' && $var->used_after)
         {
-            $self->add_to_pass_and_return_bucket($var);
+            $self->to_return($var);
         }
-        if ($var->declared_in_scope eq 'outside' && $var->used_in_scopes->has('inserted'))
+        if ($var->declared_in_scope eq 'before' && $var->used_after)
         {
-            $self->add_to_pass_and_return_bucket($var);
-        }
-        if (!$var->declared_in_scope && $var->used_in_scopes->has('inserted'))
-        {
-            $self->add_to_pass_and_return_bucket($var);
+            $self->to_pass($var);
+            $self->to_return($var);
         }
     }
 }
