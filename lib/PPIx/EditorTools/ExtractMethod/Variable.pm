@@ -1,14 +1,10 @@
 package PPIx::EditorTools::ExtractMethod::Variable;
-use Set::Scalar;
 use Moose;
-has 'name'   => ( is => 'ro', isa => 'Str' );
+has 'name'   => ( is => 'ro', isa => 'Str', required => 1 );
 has 'id'   => ( is => 'ro', isa => 'Str' );
+has 'type'   => ( is => 'ro', isa => 'Str', required => 1 );
 
-has 'used_in_scopes'   => ( 
-    is => 'rw',
-    isa => 'Set::Scalar',
-    default => sub { Set::Scalar->new },
-);
+has 'used_after' => ( is => 'rw', isa => 'Bool', default => 0 );
 
 has 'declared_in_scope'   => ( 
     is => 'rw',
