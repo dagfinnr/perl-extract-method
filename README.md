@@ -6,10 +6,13 @@ A serious attempt to get serious refactoring tool support for Perl code.
 How to try it
 -------------
 
+Not working yet in this version.
+<!---
 1. Install PPIx::EditorTools and App::EditorTools from CPAN.
 2. Clone the repository.
 3. Add the lib directory to your Perl include path.
 4. Copy `share/extract_method.vim` to `ftplugin/perl` in your vim directory.
+-->
 
 What
 ----
@@ -49,11 +52,16 @@ code that can be unit tests.
 Current limitations
 -------------------
 
-After trying this out a few times, I can see that my approach so far is
-insufficient for safe refactoring. I have tried to process only the lines that
-are to be extracted. This is a somewhat less sophisticated approach the one
-used in the existing PPIx::EditorTools refactorings. These parse the entire
-Perl file and locate the relevant parts in the parse tree PPI::Document.
-I think I will have to do this too. It's necessary to analyze the scope that
-the selected lines are contained in. I thought I might be able to hack my way
-around that problem, but now I believe it's not worth it.
+Earlier, I said:
+
+>After trying this out a few times, I can see that my approach so far is
+>insufficient for safe refactoring. I have tried to process only the lines that
+>are to be extracted. This is a somewhat less sophisticated approach the one
+>used in the existing PPIx::EditorTools refactorings. These parse the entire
+>Perl file and locate the relevant parts in the parse tree PPI::Document.
+>I think I will have to do this too. It's necessary to analyze the scope that
+>the selected lines are contained in. I thought I might be able to hack my way
+>around that problem, but now I believe it's not worth it.
+
+I'm still working on this. It's finished except for generating the actual code
+at the end.
