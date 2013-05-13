@@ -54,17 +54,19 @@ sub _build_ppi {
 sub used_variables {
     my $self = shift;
     my $vars = {};
-    foreach my $symbol ($self->symbols) {
-        my $var = $symbol->content;
+    foreach my $occurrence ($self->symbols) {
+        my $var = $occurrence->content;
         my $name = substr( $var, 1 );
         if (! defined $vars->{ $name } ) {
-            $vars->{ $name } = PPIx::EditorTools::ExtractMethod::Variable->new(name => $name);
+            $vars->{ $name } = PPIx::EditorTools::ExtractMethod::Variable->new(
+                name => $name
+            );
         }
-        if ($symbol->is_declaration) {
-            $vars->{ $name }->declared_in_scope($self->scope_category($symbol));
+        if ($occurrence->is_declaration) {
+            $vars->{ $name }->declared_in_scope($self->scope_category($occurrence));
         }
         else {
-            $vars->{ $name }->used_in_scope($self->scope_category($symbol));
+            $vars->{ $name }->used_in_scope($self->scope_category($occurrence));
         }
     }
     return $vars;
