@@ -47,7 +47,7 @@ your safety net that allows you to refactor with confidence, knowing that your t
 you when you veer off course. But sometimes there are no tests and the code is
 riddled with dependencies that make it hard to add tests. Doing a safe
 refactoring may be what you need to get you started by isolating a part of the
-code that can be unit tests.
+code that can be unit tested.
 
 Current limitations
 -------------------
