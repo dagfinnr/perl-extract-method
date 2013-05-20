@@ -6,13 +6,12 @@ A serious attempt to get serious refactoring tool support for Perl code.
 How to try it
 -------------
 
-Not working yet in this version.
-
 1. Install PPIx::EditorTools and App::EditorTools from CPAN.
 2. Install the Vim script as explained in [the documentation](https://metacpan.org/module/App::EditorTools::Vim).
 2. Clone this repository.
 3. Add the lib directory to your Perl include path.
 4. Copy `share/extract_method.vim` to `ftplugin/perl` in your vim directory.
+5. To use it in Vim, select the code you want to extract, and do :call ExtractMethod(). Add a keyboard mapping if you want.
 
 What
 ----
