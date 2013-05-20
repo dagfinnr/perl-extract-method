@@ -7,12 +7,12 @@ How to try it
 -------------
 
 Not working yet in this version.
-<!---
+
 1. Install PPIx::EditorTools and App::EditorTools from CPAN.
-2. Clone the repository.
+2. Install the Vim script as explained in [the documentation](https://metacpan.org/module/App::EditorTools::Vim).
+2. Clone this repository.
 3. Add the lib directory to your Perl include path.
 4. Copy `share/extract_method.vim` to `ftplugin/perl` in your vim directory.
--->
 
 What
 ----
@@ -49,32 +49,48 @@ riddled with dependencies that make it hard to add tests. Doing a safe
 refactoring may be what you need to get you started by isolating a part of the
 code that can be unit tested.
 
-Current limitations
--------------------
-
-Earlier, I said:
-
->After trying this out a few times, I can see that my approach so far is
->insufficient for safe refactoring. I have tried to process only the lines that
->are to be extracted. This is a somewhat less sophisticated approach the one
->used in the existing PPIx::EditorTools refactorings. These parse the entire
->Perl file and locate the relevant parts in the parse tree PPI::Document.
->I think I will have to do this too. It's necessary to analyze the scope that
->the selected lines are contained in. I thought I might be able to hack my way
->around that problem, but now I believe it's not worth it.
-
-I'm still working on this. It's finished except for generating the actual code
-at the end.
-
 Current design
 --------------
 
 The code works as a pipeline, with each class doing one stage of processing.
 
-Analyzer -> VariableSorter -> CodeGenerator
+Analyzer -> VariableSorter -> CodeGenerator -> CodeEditor
 
-CodeGenerator is not yet implemented, but the idea is that the Analyzer gleans
-relevant information from the code about variable use and declarations. Then
-the VariableSorter sort the detected variables into "buckets" depending on how
-they should be treated in the extracted code. Finally the CodeGenerator
-generates the method body and the call to the method.
+The **Analyzer** gleans relevant information from the code about variable use and declarations.
+
+The **VariableSorter** sorts the detected variables into "buckets" depending on how
+they should be treated in the extracted code.
+
+The **CodeGenerator** generates the method body and the call to the method.
+
+The **CodeEditor** handles inserting the generated code at the correct
+locations in the file that's being edited.
+
+The main **ExtractMethod** class handles the overall process, delegating the
+steps to the others.
+
+Current limitations
+-------------------
+
+I'm sure there are many more limitations than these. These are just some that occurred to
+me or that I've come across while testing.
+
+* No Emacs support.
+* Does not handle interpolated variables.
+* Does not handle `foreach my $foo` and similar constructs.
+* Does not handle `$#foo`
+* Does not give you any warning if the code you select includes part of
+  a scope, rendering the refactoring meaningless.
+* `$self` is hard-coded as the variable representing the current instance.
+* Passes and returns `$_` if present.
+* Does not handle or warn about `return` statements inside the selected code.
+* Often returns variables unnecessarily from the extracted method. If
+  a variable is defined before the extracted region and used after it, the
+  extracted method always returns the variable. This is only necessary if the
+  variable has been assigned to inside the extracted method, and that probably
+  does not happen often.
+* The resulting code is not indented nicely. You have to do that manually
+  afterwards.
+
+
+
