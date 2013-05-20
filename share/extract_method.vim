@@ -5,20 +5,7 @@ function! ExtractMethod() range
         let method_name = 'extracted'
     endif
 
-    let call_cmd = "editortools extractmethod-call -n " . method_name
-    let call_statement = system(call_cmd, extract_region )
-    let call_statement_lines = split( call_statement, "\n" )
-    execute a:firstline . ',' . a:lastline . 'delete'
-    normal k
-    call append('.', call_statement_lines)
+    let command = "editortools extractmethod -n " . method_name . " -s " . a:firstline . " -e " . a:lastline
 
-    let body_cmd = "editortools extractmethod-body -n " . method_name
-    let method_body = system(body_cmd, extract_region )
-    let method_body_lines = split( method_body, "\n" )
-
-    call search('sub \w.* {')
-    normal k
-    call append('.', method_body_lines)
+    call Exec_command_and_replace_buffer( command )
 endfunction
-
-
