@@ -1,10 +1,12 @@
 package PPIx::EditorTools::ExtractMethod::Analyzer;
+use Moose;
+
 use PPI::Document;
 use PPIx::EditorTools;
 use PPIx::EditorTools::ExtractMethod::Variable;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence;
+use PPIx::EditorTools::ExtractMethod::LineRange;
 use Set::Scalar;
-use Moose;
 
 has 'code'   => ( is => 'rw', isa => 'Str' );
 
@@ -15,19 +17,20 @@ has 'ppi'   => (
     builder => '_build_ppi',
 );
 
-
-has 'start_selected'   => ( is => 'rw', isa => "Int" );
-has 'end_selected'   => ( is => 'rw', isa => "Int" );
+has 'selected_range' => (
+    is => 'rw',
+    isa => 'PPIx::EditorTools::ExtractMethod::LineRange',
+    coerce => 1,
+);
 
 sub variables_in_selected {
     my $self = shift;
     my $symbols = $self->ppi->find(
         sub {
             $_[1]->isa('PPI::Token::Symbol')
-            && $_[1]->location->[0] >= $self->start_selected
-            && $_[1]->location->[0] <= $self->end_selected
+            && $self->selected_range->contains_line($_[1]->location->[0]);
         }
-    );
+    ) || [];
     my %vars;
     foreach my $symbol ( @$symbols ) {
         my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
@@ -38,11 +41,10 @@ sub variables_in_selected {
                 id => $occurrence->variable_id,
                 name => $occurrence->variable_name,
                 type => $occurrence->variable_type,
-                declared_in_scope => 'before',
             );
         }
         if ($occurrence->is_declaration) {
-            $vars{$occurrence->variable_id}->declared_in_scope('selected') ;
+            $vars{$occurrence->variable_id}->declared_in_selection(1);
         }
     }
     return \%vars;
@@ -52,14 +54,14 @@ sub variables_after_selected {
     my $self = shift;
     my $inside_element =  PPIx::EditorTools::find_token_at_location(
         $self->ppi,
-        [$self->start_selected, 1]);
+        [$self->selected_range->start, 1]);
     my $scope = $self->enclosing_scope($inside_element);
     my $symbols = $scope->find(
         sub {
             $_[1]->isa('PPI::Token::Symbol')
-            && $_[1]->location->[0] > $self->end_selected
+            && $self->selected_range->is_before_line($_[1]->location->[0]); 
         }
-    );
+    ) || [];
     my %vars;
     foreach my $symbol ( @$symbols ) {
         my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
@@ -98,10 +100,17 @@ sub enclosing_scope {
     return $element;
 }
 
+sub selected_code {
+    my $self = shift;
+    return $self->selected_range->cut_code($self->code);
+}
+
 sub _build_ppi {
     my $self = shift;
     my $code = $self->code;
-    return PPI::Document->new(\$code);
+    my $doc = PPI::Document->new(\$code);
+    $doc->index_locations();
+    return $doc;
 }
 
 1;

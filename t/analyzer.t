@@ -22,8 +22,7 @@ sub setup {
     $foo = 1;
     $grault = 2!;
     $analyzer->code($code);
-    $analyzer->start_selected(3);
-    $analyzer->end_selected(4);
+    $analyzer->selected_range([3,4]);
 }
 
 subtest 'can identify variables within selected region' => sub  {
@@ -50,13 +49,13 @@ subtest 'identified variables are variable objects' => sub  {
 subtest 'can identify variable declared inside selected region' => sub  {
     my $vars = $analyzer->variables_in_selected;
     my $foo = $vars->{'$foo'};
-    is($foo->declared_in_scope, 'selected');
+    ok($foo->declared_in_selection);
 };
 
 subtest 'can identify variable declared outside selected region' => sub  {
     my $vars = $analyzer->variables_in_selected;
     my $foo = $vars->{'$qux'};
-    is($foo->declared_in_scope, 'before');
+    ok(!$foo->declared_in_selection);
 };
 
 subtest 'can know variable is used after selected region' => sub {
@@ -72,5 +71,20 @@ subtest 'ignores variables completely outside' => sub {
     my $vars = $analyzer->output_variables;
     ok (! defined $vars->{ '$grault' });
 };
+
+subtest 'can return selected code as string' => sub  {
+    my $expected = trim_code(q!my $inside = 42;
+        my $foo; my $bar = $baz + $qux + $inside;!);
+    is(trim_code($analyzer->selected_code),
+        $expected);
+};
+
+#The following two behaviors are in place, but not tested:
+#
+#subtest 'can handle no variables inside selected region' => sub  {
+#};
+
+#subtest 'can handle no variables after selected region' => sub  {
+#};
 
 done_testing();
