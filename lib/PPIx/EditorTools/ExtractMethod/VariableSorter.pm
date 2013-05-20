@@ -67,15 +67,16 @@ sub to_return {
 sub process_input {
     my $self = shift;
     foreach my $var (values %{$self->input}) {
-        if ($var->declared_in_scope eq 'before' && !$var->used_after)
+        next if ($var->name eq 'self');
+        if (!$var->declared_in_selection && !$var->used_after)
         {
             $self->to_pass($var);
         }
-        if ($var->declared_in_scope eq 'inside' && $var->used_after)
+        if ($var->declared_in_selection && $var->used_after)
         {
             $self->to_return($var);
         }
-        if ($var->declared_in_scope eq 'before' && $var->used_after)
+        if (!$var->declared_in_selection && $var->used_after)
         {
             $self->to_pass($var);
             $self->to_return($var);
