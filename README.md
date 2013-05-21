@@ -88,6 +88,12 @@ me or that I've come across while testing.
   extracted method always returns the variable. This is only necessary if the
   variable has been assigned to inside the extracted method, and that probably
   does not happen often.
+
+The following two are only cosmetic; they have no effect on how the code
+works.
+
+* When there are no variables to return, the extracted method uselessly returns
+  an empty array: `return ();`
 * The resulting code is not indented nicely. You have to do that manually
   afterwards.
 
