@@ -68,6 +68,32 @@ locations in the file that's being edited.
 The main **ExtractMethod** class handles the overall process, delegating the
 steps to the others.
 
+Analyzing the variables
+-----------------------
+
+The most difficult part of this refactoring is analyzing the variables.
+
+The code example illustrates the distinctions on which the analysis is based.
+The code inside the red rectangle is the code selected for extraction. We need
+to know which variables cross the boundaries of the selected code segment. Any
+variable that exists only inside or only outside the selected region can be
+ignored for the purposes of the refactoring. The categories that need to be
+identified are represented by the three arrows:
+
+**Variables that are declared before and used inside the selected code:** (upper short
+arrow). These variables are passed to the extracted method.
+
+**Variables that are declared inside and used after the selected code:** (lower short
+arrow). These variables are returned from the extracted method. However,
+this is only necessary if the later use is inside the scope that contains the
+selected code.
+
+**Variables that are declared before, used inside and after the selected code:** (long
+arrow). These variables are passed to and returned from the extracted method.
+Actually, this only necessary if the variables are *assigned to* in the
+selected code, but the current implmentation does not check this.
+
+![Code example](https://www.evernote.com/shard/s212/sh/3653d26e-4a58-4e8a-ade1-a0a351d12fa2/4424fe85ebc6a8b672d4e3915b611ff6/deep/0/Screenshot%2027.05.13%2012:04.png)
 Current limitations
 -------------------
 
