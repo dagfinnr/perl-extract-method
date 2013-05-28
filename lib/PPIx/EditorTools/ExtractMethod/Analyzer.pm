@@ -6,6 +6,7 @@ use PPIx::EditorTools;
 use PPIx::EditorTools::ExtractMethod::Variable;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence;
 use PPIx::EditorTools::ExtractMethod::LineRange;
+use PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
 use Set::Scalar;
 
 has 'code'   => ( is => 'rw', isa => 'Str' );
@@ -48,13 +49,11 @@ sub variables_in_selected {
 
 sub symbols_in_selected {
     my ($self) = @_;
-    my $symbols = $self->ppi->find(
-        sub {
-            $_[1]->isa('PPI::Token::Symbol')
-            && $self->selected_range->contains_line($_[1]->location->[0]);
-        }
-    ) || [];
-    return $symbols;
+    my $selected_region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        selected_range => $self->selected_range,
+        ppi => $self->ppi,
+    );
+    return $selected_region->find_symbols();
 }
 
 sub variables_after_selected {
@@ -81,16 +80,16 @@ sub variables_after_selected {
     }
     return \%vars;
 }
+
 sub symbols_after_selected {
     my ($self, $scope) = @_;
 
-    my $symbols = $scope->find(
-        sub {
-            $_[1]->isa('PPI::Token::Symbol')
-            && $self->selected_range->is_before_line($_[1]->location->[0]); 
-        }
-    ) || [];
-    return $symbols;
+    my $selected_region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        selected_range => [$self->selected_range->end + 1, 9999999],
+        scope => $scope,
+        ppi => $self->ppi,
+    );
+    return $selected_region->find_symbols;
 }
 
 sub output_variables {
