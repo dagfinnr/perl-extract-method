@@ -113,7 +113,8 @@ me or that I've come across while testing.
 * Often returns variables unnecessarily from the extracted method. If
   a variable is defined before the extracted region and used after it, the
   extracted method always returns the variable. This is only necessary if the
-  variable has been assigned to inside the extracted method, and that probably
+  variable has been assigned (or if it's a hash or array that's not a reference and
+  its contents have been changed) to inside the extracted method, and that probably
   does not happen often.
 * Possible collisions with variable names when referencing and dereferencing
   arrays and hashes. I chose not to create cryptic names for the references.
@@ -126,6 +127,8 @@ works.
   an empty array: `return ();`
 * The resulting code is not indented nicely. You have to do that manually
   afterwards.
+* If only one variable is returned, it would be helpful to not return it as
+  a one-element array;
 
 
 
