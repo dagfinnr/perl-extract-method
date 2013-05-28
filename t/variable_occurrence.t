@@ -12,7 +12,6 @@ subtest 'can generate variable name and id' => sub  {
     my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
         ppi_symbol => $used);
     is($occurrence->variable_name, 'bar');
-
 };
 
 subtest 'can parse single variable declaration' => sub  {
@@ -105,3 +104,5 @@ foreach my $cfgfile (@{$loaded_cfg}) {
 for my $method (qw(want_som)) {
 if ( my $hit = ${ $self->struct->{channel}->{item} }[$self->current_count]) {
 foreach my $f (@fields){
+
+

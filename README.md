@@ -106,7 +106,9 @@ me or that I've come across while testing.
 * Does not give you any warning if the code you select includes part of
   a scope, rendering the refactoring meaningless.
 * `$self` is hard-coded as the variable representing the current instance.
-* Passes and returns `$_` if present.
+* Ignores `$_` if present, but does not ignore [other special variables](http://perldoc.perl.org/perlvar.html#SPECIAL-VARIABLES).
+  Relatively simple to fix by adding to the `is_special_variable` method of the
+  Variable class.
 * Does not handle or warn about `return` statements inside the selected code.
 * Often returns variables unnecessarily from the extracted method. If
   a variable is defined before the extracted region and used after it, the

@@ -81,6 +81,7 @@ sub process_input {
     my $self = shift;
     foreach my $var (values %{$self->input}) {
         next if ($var->name eq 'self');
+        next if ($var->is_special_variable);
         if (!$var->declared_in_selection && !$var->used_after)
         {
             $self->to_pass($var);

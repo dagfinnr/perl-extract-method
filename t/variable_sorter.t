@@ -85,4 +85,20 @@ subtest 'eliminates $self' => sub  {
     is_deeply( $sorter->return_by_ref_bucket, [ ] );
 };
 
+subtest 'eliminates $self' => sub  {
+    $sorter = PPIx::EditorTools::ExtractMethod::VariableSorter->new;
+    $var = PPIx::EditorTools::ExtractMethod::Variable->new(
+        name => '_',
+        type => '$',
+        declared_in_selection => 0,
+        used_after => 0,
+    );
+    $sorter->input({'$self' => $var});
+    $sorter->process_input();
+    is_deeply( $sorter->pass_bucket, [ ] );
+    is_deeply( $sorter->return_bucket, [ ] );
+    is_deeply( $sorter->pass_by_ref_bucket, [ ] );
+    is_deeply( $sorter->return_by_ref_bucket, [ ] );
+};
+
 done_testing();

@@ -11,4 +11,8 @@ sub make_reference {
     return '\\' . $_[0]->id;
 }
 
+sub is_special_variable {
+    return $_[0]->name eq '_';
+}
+
 1;
