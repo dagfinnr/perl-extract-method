@@ -31,6 +31,7 @@ subtest 'scalar declared inside and used after' => sub  {
     setup({declared_in_selection => 1, used_after => 1});
     is_deeply( $sorter->pass_bucket, [ ] );
     is_deeply( $sorter->return_bucket, [ $var ] );
+    is_deeply( $sorter->return_and_declare_bucket, [ $var ] );
 };
 
 subtest 'scalar declared before and used both inside and after' => sub  {
@@ -59,7 +60,7 @@ subtest 'hash declared inside and used after' => sub  {
     setup({declared_in_selection => 1, used_after => 1, type => '%'});
     is_deeply( $sorter->pass_by_ref_bucket, [ ] );
     is_deeply( $sorter->return_by_ref_bucket, [ $var ] );
-    is_deeply( $sorter->return_by_ref_and_declare_bucket, [ $var ] );
+    is_deeply( $sorter->return_and_declare_bucket, [ $var ] );
 };
 
 subtest 'hash declared before and used both inside and after' => sub  {

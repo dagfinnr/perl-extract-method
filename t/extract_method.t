@@ -19,4 +19,15 @@ subtest 'integration test' => sub  {
     is($extractor->code . "\n", $expected);
 };
 
+subtest 'extract method from extract method' => sub  {
+    my $code = read_file($FindBin::Bin . '/data/input/extract_method.pl');
+    my $extractor = PPIx::EditorTools::ExtractMethod->new(
+        code => $code,
+        selected_range => [6,10],
+    );
+    $extractor->extract_method('foo');
+    like($extractor->code,
+        qr/my \(\$editor\).*\(\$name, \$editor\) = \$self->foo\(\$name\);/s
+    );
+};
 done_testing();

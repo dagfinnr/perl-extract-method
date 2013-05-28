@@ -47,7 +47,7 @@ sub return_dereference {
 sub return_declarations {
     my $self = shift;
     return 'my (' . 
-    join(', ', (map {'$' . $_->name } @{ $self->sorter->return_by_ref_bucket }), map { $_->id } @{ $self->sorter->return_by_ref_and_declare_bucket }) .
+    join(', ', (map {'$' . $_->name } @{ $self->sorter->return_by_ref_bucket }), map { $_->id } @{ $self->sorter->return_and_declare_bucket }) .
     ');';
 }
 
@@ -62,9 +62,11 @@ sub return_vars {
     + $self->return_by_ref_vars;
 }
 
+# TODO: This is misleading since it's not always by ref:
 sub return_by_ref_vars {
     my $self = shift;
-    return scalar @{ $self->sorter->return_by_ref_bucket };
+    return scalar @{ $self->sorter->return_by_ref_bucket }
+    || scalar @{ $self->sorter->return_and_declare_bucket };
 }
 
 sub pass_list_external {

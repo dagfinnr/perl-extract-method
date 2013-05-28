@@ -27,13 +27,13 @@ has 'pass_bucket' => (
     },
 );
 
-has 'return_by_ref_and_declare_bucket' => (
+has 'return_and_declare_bucket' => (
     traits  => ['Array'],
     is      => 'ro',
     isa     => 'ArrayRef[PPIx::EditorTools::ExtractMethod::Variable]',
     default => sub { [] },
     handles => {
-        add_to_return_by_ref_and_declare_bucket  => 'push',
+        add_to_return_and_declare_bucket  => 'push',
     },
 );
 
@@ -89,7 +89,7 @@ sub process_input {
         if ($var->declared_in_selection && $var->used_after)
         {
             $self->to_return($var);
-            $self->add_to_return_by_ref_and_declare_bucket($var) if $var->type ne '$';
+            $self->add_to_return_and_declare_bucket($var);
         }
         if (!$var->declared_in_selection && $var->used_after)
         {
