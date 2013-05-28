@@ -114,6 +114,9 @@ me or that I've come across while testing.
   extracted method always returns the variable. This is only necessary if the
   variable has been assigned to inside the extracted method, and that probably
   does not happen often.
+* Possible collisions with variable names when referencing and dereferencing
+  arrays and hashes. I chose not to create cryptic names for the references.
+  It's more readable, but unsafe.
 
 The following two are only cosmetic; they have no effect on how the code
 works.

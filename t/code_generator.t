@@ -96,9 +96,9 @@ subtest 'can generate dereferencing after return' => sub  {
     is($generator->return_dereference, '%to_return = %$to_return;' . "\n" . '@inside_array = @$inside_array;');
 };
 
-subtest 'can generate declarations of returned references' => sub  {
+subtest 'can generate declarations of returned variables and references' => sub  {
     setup();
-    is($generator->return_ref_declarations, 'my ($to_return, $inside_array);');
+    is($generator->return_declarations, 'my ($to_return, $inside_array, %to_return);');
 };
 
 
@@ -111,7 +111,7 @@ subtest 'can generate call to method' => sub  {
     setup(); 
     is(
         $generator->method_call('new_method'),
-        'my ($to_return, $inside_array);' . "\n" .
+        'my ($to_return, $inside_array, %to_return);' . "\n" .
         '($bar, $to_return, $inside_array) = $self->new_method($qux, $baz, \@inside_array);' . "\n" .
         '%to_return = %$to_return;' . "\n" .
         '@inside_array = @$inside_array;'

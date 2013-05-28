@@ -59,8 +59,15 @@ sub _build_analyzer {
     return $analyzer;
 }
 
-#TODO Make sure we're not dependent on the correct sequence of end_of_sub vs
-#replace_selected_lines
+=head2 extract_method
+
+Main method for the Extract Method refactoring. Analyzes variables in the selected
+code, finds out which of them need to be passed or returned from the extracted method,
+generates the new method and the call to it, and edits the document to insert the
+generated code at the appropriate places.
+
+=cut
+
 sub extract_method {
     my ($self, $name) = @_;
     my $vars = $self->analyzer->output_variables();
