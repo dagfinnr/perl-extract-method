@@ -9,6 +9,7 @@ has 'ppi_symbol'   => (
 
 sub is_declaration {
     return $_[0]->is_single_declaration() ||
+    $_[0]->is_loop_variable_declaration ||
     $_[0]->is_list_declaration();
 }
 
@@ -28,6 +29,14 @@ sub is_list_declaration {
     }
     return 0;
 }
+
+sub is_loop_variable_declaration {
+    my $symb = $_[0]->ppi_symbol;
+    return $symb->parent->schild(0)->content =~ /^for(each)?$/
+    && $symb->parent->schild(1)->content eq 'my'
+    && $symb->parent->schild(2) == $symb;
+}
+
 
 sub variable_type {
     my $symbol = $_[0]->ppi_symbol;

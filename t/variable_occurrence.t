@@ -28,6 +28,19 @@ subtest 'can parse single variable declaration' => sub  {
     ok (!$occurrence->is_declaration);
 };
 
+subtest 'can parse loop variable declaration' => sub  {
+    my $code = 'foreach my $foo ( @bar ) { }';
+    my $ppi = PPI::Document->new( \$code );
+    my $declared = $ppi->find( sub { $_[1]->content eq '$foo' } )->[0];
+    my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
+        ppi_symbol => $declared);
+    ok ($occurrence->is_declaration);
+#    my $used = $ppi->find( sub { $_[1]->content eq '@bar' } )->[0];
+#    $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
+#        ppi_symbol => $used);
+#    ok (!$occurrence->is_declaration);
+};
+
 subtest 'can parse multi-variable declaration' => sub  {
     my $code = 'my ($foo, $qux) = $bar';
     my $ppi = PPI::Document->new( \$code );
