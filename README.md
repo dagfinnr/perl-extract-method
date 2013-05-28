@@ -102,7 +102,6 @@ me or that I've come across while testing.
 
 * No Emacs support.
 * Does not handle interpolated variables.
-* Does not handle `foreach my $foo` and similar constructs.
 * Does not handle `$#foo`
 * Does not give you any warning if the code you select includes part of
   a scope, rendering the refactoring meaningless.
