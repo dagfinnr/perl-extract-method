@@ -33,6 +33,19 @@ sub trim_code {
     return $code;
 }
 
+subtest 'omits return list when nothing to return' => sub  {
+    setup( q!sub foo{
+        # one
+        $qux = 42;
+        # two
+        }!
+    ); 
+    is(
+        $generator->method_call('new_method'),
+        '$self->new_method($qux);' . "\n"
+    );
+};
+
 subtest 'can generate list of variables to pass' => sub  {
     setup();
     is(join(',', $generator->pass_list_external), '$qux,$baz,\@inside_array');
@@ -50,17 +63,17 @@ subtest 'can generate list of variables to dereference when passing' => sub  {
 
 subtest 'can generate list of variables to dereference after returning' => sub  {
     setup();
-    is_deeply([$generator->dereference_list_external], [[qw/%to_return %$to_return/]]);
+    is_deeply([$generator->dereference_list_external], [[qw/%to_return %$to_return/], [qw/@inside_array @$inside_array/] ]);
 };
 
 subtest 'can generate list of variables to return' => sub  {
     setup();
-    is(join(',', $generator->return_list_internal), '$bar,\%to_return');
+    is(join(',', $generator->return_list_internal), '$bar,\%to_return,\@inside_array');
 };
 
 subtest 'can generate list of returned variables' => sub  {
     setup();
-    is(join(',', $generator->return_list_external), '$bar,$to_return');
+    is(join(',', $generator->return_list_external), '$bar,$to_return,$inside_array');
 };
 
 subtest 'can generate argument list' => sub  {
@@ -75,39 +88,33 @@ subtest 'can generate argument dereferencing' => sub  {
 
 subtest 'can generate return statement' => sub  {
     setup();
-    is($generator->return_statement, 'return ($bar, \%to_return);');
+    is($generator->return_statement, 'return ($bar, \%to_return, \@inside_array);');
 };
 
 subtest 'can generate dereferencing after return' => sub  {
     setup();
-    is($generator->return_dereference, '%to_return = %$to_return;');
+    is($generator->return_dereference, '%to_return = %$to_return;' . "\n" . '@inside_array = @$inside_array;');
+};
+
+subtest 'can generate declarations of returned references' => sub  {
+    setup();
+    is($generator->return_ref_declarations, 'my ($to_return, $inside_array);');
 };
 
 
 subtest 'can generate list of returned vars' => sub  {
     setup();
-    is($generator->returned_vars, '($bar, $to_return)');
+    is($generator->returned_vars, '($bar, $to_return, $inside_array)');
 };
 
 subtest 'can generate call to method' => sub  {
     setup(); 
     is(
         $generator->method_call('new_method'),
-        '($bar, $to_return) = $self->new_method($qux, $baz, \@inside_array);' . "\n" .
-        '%to_return = %$to_return;'
-    );
-};
-
-subtest 'omits return list when nothing to return' => sub  {
-    setup( q!sub foo{
-        # one
-        $qux = 42;
-        # two
-        }!
-    ); 
-    is(
-        $generator->method_call('new_method'),
-        '$self->new_method($qux);' . "\n"
+        'my ($to_return, $inside_array);' . "\n" .
+        '($bar, $to_return, $inside_array) = $self->new_method($qux, $baz, \@inside_array);' . "\n" .
+        '%to_return = %$to_return;' . "\n" .
+        '@inside_array = @$inside_array;'
     );
 };
 
@@ -118,7 +125,7 @@ subtest 'can generate method body' => sub  {
         my @inside_array = @$inside_array;
         my %to_return = 42; $inside_array[0] = 43;
         my $foo; my $bar = $baz + $qux;
-        return ($bar, \%to_return);
+        return ($bar, \%to_return, \@inside_array);
     }!;
     is(
         trim_code($generator->method_body('new_method')),

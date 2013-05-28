@@ -119,6 +119,7 @@ sub rename {
 
 	#warn "VARNAME: $varname";
 
+my ($patterns);
 ($varname, $type, $patterns) = $self->symbol_patterns($varname);
 @patterns = @$patterns;
 	my %unique;

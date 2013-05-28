@@ -44,7 +44,7 @@ subtest 'hash declared before and used inside' => sub  {
     is_deeply( $sorter->pass_bucket, [ ] );
     is_deeply( $sorter->return_bucket, [ ] );
     is_deeply( $sorter->pass_by_ref_bucket, [ $var ] );
-    is_deeply( $sorter->return_by_ref_bucket, [ ] );
+    is_deeply( $sorter->return_by_ref_bucket, [ $var ] );
 };
 
 subtest 'hash declared inside and used inside' => sub  {

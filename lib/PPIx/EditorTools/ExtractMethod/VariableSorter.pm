@@ -71,6 +71,7 @@ sub process_input {
         if (!$var->declared_in_selection && !$var->used_after)
         {
             $self->to_pass($var);
+            $self->to_return($var) if $var->type ne '$';
         }
         if ($var->declared_in_selection && $var->used_after)
         {

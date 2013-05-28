@@ -9,7 +9,8 @@ sub method_call {
     my ($self, $method_name) = @_;
     my $code = '$self->' . $method_name . 
     '(' . join(', ', $self->pass_list_external) . ');';
-    $code = $self->returned_vars . ' = ' . $code if $self->has_return_vars;
+    $code = $self->returned_vars . ' = ' . $code if $self->return_vars;
+    $code = $self->return_ref_declarations . "\n" . $code if $self->return_by_ref_vars;
     $code .= "\n" . $self->return_dereference;
 }
 
@@ -43,15 +44,27 @@ sub return_dereference {
     return join "\n", map { join(' = ', @$_) . ';' } $self->dereference_list_external;
 }
 
+sub return_ref_declarations {
+    my $self = shift;
+    return 'my (' . 
+    join(', ', map {'$' . $_->name } @{ $self->sorter->return_by_ref_bucket }) .
+    ');';
+}
+
 sub returned_vars {
     my $self = shift;
     return '(' . join(', ', $self->return_list_external) . ')';
 }
 
-sub has_return_vars {
+sub return_vars {
     my $self = shift;
     return scalar @{ $self->sorter->return_bucket } 
-    + scalar @{ $self->sorter->return_by_ref_bucket };
+    + $self->return_by_ref_vars;
+}
+
+sub return_by_ref_vars {
+    my $self = shift;
+    return scalar @{ $self->sorter->return_by_ref_bucket };
 }
 
 sub pass_list_external {

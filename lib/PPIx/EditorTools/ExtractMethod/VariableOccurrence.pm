@@ -46,6 +46,7 @@ sub variable_id {
     my $self = shift;
     return $self->variable_type . $self->variable_name;
 }
+
 sub is_array_element {
     return $_[0]->_get_brace_for_subscript eq '[';
 }
