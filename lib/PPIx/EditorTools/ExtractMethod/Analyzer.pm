@@ -25,12 +25,8 @@ has 'selected_range' => (
 
 sub variables_in_selected {
     my $self = shift;
-    my $symbols = $self->ppi->find(
-        sub {
-            $_[1]->isa('PPI::Token::Symbol')
-            && $self->selected_range->contains_line($_[1]->location->[0]);
-        }
-    ) || [];
+    my $symbols = $self->symbols_in_selected();
+
     my %vars;
     foreach my $symbol ( @$symbols ) {
         my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
@@ -50,18 +46,25 @@ sub variables_in_selected {
     return \%vars;
 }
 
+sub symbols_in_selected {
+    my ($self) = @_;
+    my $symbols = $self->ppi->find(
+        sub {
+            $_[1]->isa('PPI::Token::Symbol')
+            && $self->selected_range->contains_line($_[1]->location->[0]);
+        }
+    ) || [];
+    return $symbols;
+}
+
 sub variables_after_selected {
     my $self = shift;
     my $inside_element =  PPIx::EditorTools::find_token_at_location(
         $self->ppi,
         [$self->selected_range->start, 1]);
     my $scope = $self->enclosing_scope($inside_element);
-    my $symbols = $scope->find(
-        sub {
-            $_[1]->isa('PPI::Token::Symbol')
-            && $self->selected_range->is_before_line($_[1]->location->[0]); 
-        }
-    ) || [];
+    my $symbols = $self->symbols_after_selected($scope);
+
     my %vars;
     foreach my $symbol ( @$symbols ) {
         my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
@@ -77,6 +80,17 @@ sub variables_after_selected {
         }
     }
     return \%vars;
+}
+sub symbols_after_selected {
+    my ($self, $scope) = @_;
+
+    my $symbols = $scope->find(
+        sub {
+            $_[1]->isa('PPI::Token::Symbol')
+            && $self->selected_range->is_before_line($_[1]->location->[0]); 
+        }
+    ) || [];
+    return $symbols;
 }
 
 sub output_variables {
@@ -109,8 +123,8 @@ sub _build_ppi {
     my $self = shift;
     my $code = $self->code;
     my $doc = PPI::Document->new(\$code);
-    $doc->index_locations();
-    return $doc;
+$doc->index_locations();
+return $doc;
 }
 
 1;
