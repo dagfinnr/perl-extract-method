@@ -12,7 +12,12 @@ sub make_reference {
 }
 
 sub is_special_variable {
-    return $_[0]->name eq '_';
+    return 1 if $_[0]->name eq '_';
+    return 1 if $_[0]->name eq '/';
+    return 1 if $_[0]->name eq '\\';
+    return 1 if $_[0]->name eq '#';
+    return 1 if $_[0]->name =~ /^\d$/;
+    return 0;
 }
 
 1;
