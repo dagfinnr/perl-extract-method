@@ -18,6 +18,11 @@ around BUILDARGS => sub {
     );
 };
 
+sub all {
+    my $class = shift ;
+    return $class->new(0,99999999);
+}
+
 sub contains_line {
     my ($self, $line) = @_;
     return $self->start <= $line && $self->end >= $line;

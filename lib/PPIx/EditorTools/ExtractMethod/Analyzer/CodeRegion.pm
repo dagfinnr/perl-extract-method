@@ -11,6 +11,9 @@ has 'selected_range' => (
     is => 'rw',
     isa => 'PPIx::EditorTools::ExtractMethod::LineRange',
     coerce => 1,
+    default => sub { 
+        PPIx::EditorTools::ExtractMethod::LineRange->all;
+    }
 );
 
 has 'scope' => ( is => 'ro', isa => 'PPI::Element' );
@@ -48,7 +51,6 @@ sub find_quoted_variable_occurrences {
 sub find_unquoted_variable_occurrences {
     my $self = shift ;
     my $finder = sub {
-        return $_[1]->isa('PPI::Token::Symbol') if !$self->selected_range;
         return $_[1]->isa('PPI::Token::Symbol')
         && $self->selected_range->contains_line($_[1]->location->[0]);
     };
@@ -60,7 +62,6 @@ sub find_unquoted_variable_occurrences {
 sub find_unquoted_symbols {
     my $self = shift ;
     my $finder = sub {
-        return $_[1]->isa('PPI::Token::Symbol') if !$self->selected_range;
         return $_[1]->isa('PPI::Token::Symbol')
         && $self->selected_range->contains_line($_[1]->location->[0]);
     };
@@ -93,12 +94,7 @@ sub find_quote_tokens {
 
 sub find {
     my ($self, $finder) = @_;
-    if ($self->selected_range && !$self->scope) {
-        return $self->ppi->find($finder) || [];
-    }
-    if ($self->selected_range && $self->scope) {
-        return $self->scope->find($finder) || [];
-    }
+    return $self->scope->find($finder) || [] if $self->scope;
     return $self->ppi->find($finder) || [];
 }
 
