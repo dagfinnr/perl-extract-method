@@ -3,20 +3,14 @@ use PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
 
 my ($region);
 
-#sub setup {
-#    $region = PPIx::EditorTools::ExtractMethod::CodeRegion->new();
-#    my $code = shift || q!
-#    if ($condition) {
-#        my $inside = 42;
-#        my $bar = $baz + $qux + $inside;
-#        $bar = $corge;
-#        return $quux;
-#    }
-#    $foo = 1;
-#    $grault = 2!;
-#    $analyzer->code($code);
-#    $analyzer->selected_range([3,4]);
-#}
+subtest 'can find quote tokens' => sub  {
+    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        ppi => PPI::Document->new(\'"$foo/$bar"; s/$foo/$bar/')
+    );
+    $tokens = $region->find_quote_tokens;
+    isa_ok($tokens->[0], 'PPI::Token::Quote::Double');
+    isa_ok($tokens->[1], 'PPI::Token::Regexp::Substitute');
+};
 
 subtest 'can search whole document' => sub  {
     $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
