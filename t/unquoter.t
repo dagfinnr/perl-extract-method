@@ -1,47 +1,36 @@
 use Test::More;
 use PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter;
 1;
-subtest 'can eliminate double quotes' => sub  {
-    my $doc = PPI::Document->new(\'"$foo/$bar"');
-    my $expected = PPI::Document->new(\'$foo/$bar');
+sub process {
+    my $code = shift;
+    my $doc = PPI::Document->new(\$code);
     my $token = $doc->first_token;
-    is_deeply(
-        (PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token))[0],
-        $expected); 
+    PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token); 
+}
+
+subtest 'can eliminate double quotes' => sub  {
+    my @docs = process('"$foo/$bar"');
+    is("$docs[0]", '$foo/$bar');
 };
 
 subtest 'can eliminate backticks' => sub  {
-    my $doc = PPI::Document->new(\'`$foo/$bar`');
-    my $expected = PPI::Document->new(\'$foo/$bar');
-    my $token = $doc->first_token;
-    is_deeply(
-        (PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token))[0],
-        $expected); 
+    my @docs = process('`$foo/$bar`');
+    is("$docs[0]", '$foo/$bar');
 };
 
 subtest 'can eliminate qq token' => sub  {
-    my $doc = PPI::Document->new(\'qq!$foo/$bar!');
-    my $expected = PPI::Document->new(\'$foo/$bar');
-    my $token = $doc->first_token;
-    my @docs = PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token); 
-    is_deeply($docs[0], $expected);
+    my @docs = process('qq!$foo/$bar!');
+    is("$docs[0]", '$foo/$bar');
 };
 
 subtest 'can get code from s///' => sub  {
-    my $doc = PPI::Document->new(\'s/$foo/$bar/');
-    my $expected0 = PPI::Document->new(\'$foo');
-    my $expected1 = PPI::Document->new(\'$bar');
-    my $token = $doc->first_token;
-    my @docs = PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token); 
-    is_deeply($docs[0], $expected0);
-    is_deeply($docs[1], $expected1);
+    my @docs = process('s/$foo/$bar/');
+    is("$docs[0]", '$foo');
+    is("$docs[1]", '$bar');
 };
 
 subtest 'does not eliminate single quotes' => sub  {
-    my $doc = PPI::Document->new(\q{q!$foo/$bar!});
-    my $expected = PPI::Document->new(\'$foo/$bar');
-    my $token = $doc->first_token;
-    my @docs = PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token); 
+    my @docs = process(q{q!$foo/$bar!});
     is(scalar @docs, 0);
 };
 
