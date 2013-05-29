@@ -91,6 +91,18 @@ subtest 'can generate return statement' => sub  {
     is($generator->return_statement, 'return ($bar, \%to_return, \@inside_array);');
 };
 
+subtest 'can generate simplifed return statement if only one var' => sub  {
+    setup(q!
+        my $foo;
+        $bar;
+        $foo;
+    }
+    $bar;
+    !);
+    $analyzer->selected_range([3,4]);
+    is($generator->return_statement, 'return $bar;');
+};
+
 subtest 'can generate dereferencing after return' => sub  {
     setup();
     is($generator->return_dereference, '%to_return = %$to_return;' . "\n" . '@inside_array = @$inside_array;');
@@ -107,6 +119,16 @@ subtest 'can generate list of returned vars' => sub  {
     is($generator->returned_vars, '($bar, $to_return, $inside_array)');
 };
 
+subtest 'can generate simplifed list of returned vars if only one var' => sub  {
+    setup(q!
+        my $foo;
+        $bar;
+        $foo;
+    }
+    $bar;
+    !);
+    is($generator->returned_vars, '$bar');
+};
 subtest 'can generate call to method' => sub  {
     setup(); 
     is(

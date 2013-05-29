@@ -36,6 +36,7 @@ sub arg_dereference {
 
 sub return_statement {
     my $self = shift;
+    return 'return ' . ($self->return_list_internal)[0] . ';' if scalar $self->return_list_internal == 1;
     return 'return (' . join(', ', $self->return_list_internal) . ');';
 }
 
@@ -53,6 +54,7 @@ sub return_declarations {
 
 sub returned_vars {
     my $self = shift;
+    return ($self->return_list_external)[0] if scalar $self->return_list_external == 1;
     return '(' . join(', ', $self->return_list_external) . ')';
 }
 

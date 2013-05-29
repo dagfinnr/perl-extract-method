@@ -126,8 +126,6 @@ works.
   an empty array: `return ();`
 * The resulting code is not indented nicely. You have to do that manually
   afterwards.
-* If only one variable is returned, it would be helpful to not return it as
-  a one-element array;
 
 
 
