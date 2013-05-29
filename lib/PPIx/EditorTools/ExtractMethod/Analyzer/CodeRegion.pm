@@ -17,8 +17,44 @@ has 'scope' => ( is => 'ro', isa => 'PPI::Element' );
 
 sub find_symbols {
     my $self = shift ;
+    my $result = [];
+    @$result = (@$result, @{$self->find_unquoted_symbols});
+    return $result;
+}
+
+sub find_variable_occurrences {
+    my $self = shift ;
     my @result = ();
-    @result = @result, $self->find_unquoted_symbols;
+    @result = (@result, $self->find_unquoted_variable_occurrences);
+    @result = (@result, $self->find_quoted_variable_occurrences);
+    return @result;
+}
+
+
+sub find_quoted_variable_occurrences {
+    my $self = shift ;
+    my $tokens = $self->find_quote_tokens;
+    my $result = [];
+    foreach my $token (@$tokens) {
+        my @docs = PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token);
+        foreach my $doc (@docs) {
+            my $region = __PACKAGE__->new(ppi => $doc);
+            @$result = (@$result, $region->find_unquoted_variable_occurrences);
+        }
+    }
+    return @$result;
+}
+
+sub find_unquoted_variable_occurrences {
+    my $self = shift ;
+    my $finder = sub {
+        return $_[1]->isa('PPI::Token::Symbol') if !$self->selected_range;
+        return $_[1]->isa('PPI::Token::Symbol')
+        && $self->selected_range->contains_line($_[1]->location->[0]);
+    };
+    my $symbols = $self->find($finder);
+    my $factory = PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory->new;
+    return map { $factory->occurrence_from_symbol($_) } @$symbols;
 }
 
 sub find_unquoted_symbols {

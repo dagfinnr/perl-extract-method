@@ -5,11 +5,29 @@ my ($region);
 
 subtest 'can find quote tokens' => sub  {
     $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
-        ppi => PPI::Document->new(\'"$foo/$bar"; s/$foo/$bar/')
+        ppi => PPI::Document->new(\q!"$qux";
+        "$foo/$bar";
+        s/$foo/$bar/'
+        "$quux";
+        !
+    ),
+        selected_range => [2,3],
     );
     $tokens = $region->find_quote_tokens;
     isa_ok($tokens->[0], 'PPI::Token::Quote::Double');
     isa_ok($tokens->[1], 'PPI::Token::Regexp::Substitute');
+};
+
+subtest 'can find quoted variable occurrences' => sub  {
+    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        ppi => PPI::Document->new(\'"$foo/$bar"; s/$foo/$bar/'),
+        selected_range => [1,9999],
+    );
+    @names = map { $_->variable_id } $region->find_quoted_variable_occurrences;
+    is($names[0], '$foo');
+    is($names[1], '$bar');
+    is($names[2], '$foo');
+    is($names[3], '$bar');
 };
 
 subtest 'can search whole document' => sub  {
