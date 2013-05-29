@@ -2,6 +2,8 @@ package PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
 use Moose;
 use PPI::Document;
 use PPIx::EditorTools::ExtractMethod::LineRange;
+use PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter;
+use PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
 
 has 'ppi'   => ( is => 'ro', isa => 'Object' );
 
@@ -32,6 +34,7 @@ sub find_unquoted_symbols {
 sub find_quote_tokens {
     my $self = shift ;
     my $finder = sub { 
+        return 0 if !$self->selected_range->contains_line($_[1]->location->[0]);
         my @excluded_classes = qw(
             PPI::Token::Quote::Single
             PPI::Token::Quote::Literal
