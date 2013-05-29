@@ -101,21 +101,20 @@ I'm sure there are many more limitations than these. These are just some that oc
 me or that I've come across while testing.
 
 * No Emacs support.
-* Does not handle interpolated variables.
 * Does not handle `$#foo`
 * Does not give you any warning if the code you select includes part of
   a scope, rendering the refactoring meaningless.
 * `$self` is hard-coded as the variable representing the current instance.
-* Ignores `$_` if present, but does not ignore [other special variables](http://perldoc.perl.org/perlvar.html#SPECIAL-VARIABLES).
+* Ignores some [special variables](http://perldoc.perl.org/perlvar.html#SPECIAL-VARIABLES), but not all.
   Relatively simple to fix by adding to the `is_special_variable` method of the
   Variable class.
 * Does not handle or warn about `return` statements inside the selected code.
 * Often returns variables unnecessarily from the extracted method. If
   a variable is defined before the extracted region and used after it, the
   extracted method always returns the variable. This is only necessary if the
-  variable has been assigned (or if it's a hash or array that's not a reference and
-  its contents have been changed) to inside the extracted method, and that probably
-  does not happen often.
+  variable has been assigned to inside the extracted method (or if it's a hash
+  or array that's not a reference and its contents have been changed), and that
+  probably does not happen often.
 * Possible collisions with variable names when referencing and dereferencing
   arrays and hashes. I chose not to create cryptic names for the references.
   It's more readable, but unsafe.
