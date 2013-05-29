@@ -18,13 +18,6 @@ has 'selected_range' => (
 
 has 'scope' => ( is => 'ro', isa => 'PPI::Element' );
 
-sub find_symbols {
-    my $self = shift ;
-    my $result = [];
-    @$result = (@$result, @{$self->find_unquoted_symbols});
-    return $result;
-}
-
 sub find_variable_occurrences {
     my $self = shift ;
     my @result = ();
@@ -57,15 +50,6 @@ sub find_unquoted_variable_occurrences {
     my $symbols = $self->find($finder);
     my $factory = PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory->new;
     return map { $factory->occurrence_from_symbol($_) } @$symbols;
-}
-
-sub find_unquoted_symbols {
-    my $self = shift ;
-    my $finder = sub {
-        return $_[1]->isa('PPI::Token::Symbol')
-        && $self->selected_range->contains_line($_[1]->location->[0]);
-    };
-    return $self->find($finder);
 }
 
 sub find_quote_tokens {
