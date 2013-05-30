@@ -25,9 +25,23 @@ has 'selected_range' => (
     coerce => 1,
 );
 
+has 'selected_region'   => ( 
+    is => 'ro', 
+    isa => 'PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion',
+    builder => '_build_selected_region',
+    lazy => 1,
+);
+
+sub _build_selected_region {
+    my $self = shift;
+    return PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        selected_range => $self->selected_range,
+        ppi => $self->ppi,
+    );
+}
 sub variables_in_selected {
     my $self = shift;
-    my @occurrences = $self->variable_occurrences_in_selected();
+    my @occurrences = $self->selected_region->find_variable_occurrences();
     my %vars;
     foreach my $occurrence ( @occurrences ) {
         if (! defined $vars{$occurrence->variable_id} ) {
@@ -49,15 +63,7 @@ sub variables_in_selected {
 
 sub variable_occurrences_in_selected {
     my ($self) = @_;
-    my $selected_region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
-        selected_range => $self->selected_range,
-        ppi => $self->ppi,
-    );
-    return $selected_region->find_variable_occurrences;
-    my $factory = PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory->new;
-    my $symbols = $selected_region->find_symbols();
-    my @occurrences = map { $factory->occurrence_from_symbol($_) } @$symbols;
-    return @occurrences;
+    return $self->selected_region->find_variable_occurrences;
 }
 
 sub variables_after_selected {
@@ -65,11 +71,16 @@ sub variables_after_selected {
     my $inside_element =  PPIx::EditorTools::find_token_at_location(
         $self->ppi,
         [$self->selected_range->start, 1]);
+    my @occurrences = $self->selected_region->find_variable_occurrences;
     my $scope = $self->enclosing_scope($inside_element);
-    my @occurrences = $self->variable_occurrences_after_selected($scope);
-
     my %vars;
+    my $after_region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        selected_range => [$self->selected_range->end + 1, 9999999],
+        scope => $scope,
+        ppi => $self->ppi,
+    );
     foreach my $occurrence ( @occurrences ) {
+        next if (!$after_region->has_variable($occurrence->variable_id));
         if (! defined $vars{$occurrence->variable_id} ) {
             $vars{$occurrence->variable_id} = PPIx::EditorTools::ExtractMethod::Variable->new(
                 id => $occurrence->variable_id,
@@ -82,16 +93,7 @@ sub variables_after_selected {
     return \%vars;
 }
 
-sub variable_occurrences_after_selected {
-    my ($self, $scope) = @_;
-
-    my $selected_region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
-        selected_range => [$self->selected_range->end + 1, 9999999],
-        scope => $scope,
-        ppi => $self->ppi,
-    );
-    return $selected_region->find_variable_occurrences;
-}
+#my $declaration = PPIx::EditorTools::find_variable_declaration($token);
 
 sub output_variables {
     my $self = shift;
