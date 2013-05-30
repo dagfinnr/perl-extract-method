@@ -114,7 +114,8 @@ me or that I've come across while testing.
   extracted method always returns the variable. This is only necessary if the
   variable has been assigned to inside the extracted method (or if it's a hash
   or array that's not a reference and its contents have been changed), and that
-  probably does not happen often.
+  probably does not happen often. UPDATE: this is now fixed in the case of
+  scalars.
 * Possible collisions with variable names when referencing and dereferencing
   arrays and hashes. I chose not to create cryptic names for the references.
   It's more readable, but unsafe.
