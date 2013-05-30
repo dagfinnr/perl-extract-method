@@ -61,18 +61,35 @@ subtest 'can identify type of simple variables' => sub {
 };
 
 subtest 'can identify type of hash or array element' => sub {
-    my $code = '$var[0]';
-    my $ppi = PPI::Document->new( \$code );
+    my $ppi = PPI::Document->new(\'$var[0]');
     my $symbol = $ppi->find( sub { $_[1]->content eq '$var' } )->[0];
     my $occurrence = occurrence($symbol);
     is($occurrence->variable_id, '@var');
-    my $code = '$var{a}';
-    my $ppi = PPI::Document->new( \$code );
+    my $ppi = PPI::Document->new(\'$var{a}');
     my $symbol = $ppi->find( sub { $_[1]->content eq '$var' } )->[0];
     $occurrence = occurrence($symbol);
     is($occurrence->variable_id, '%var');
 };
 
+subtest 'can detect assignment' => sub  {
+    my $ppi = PPI::Document->new(\'$bar = $foo');
+    my $symbol = $ppi->first_token;
+    my $occurrence = occurrence($symbol);
+    ok($occurrence->is_changed);
+    $symbol = $ppi->find( sub { $_[1]->content eq '$foo' } )->[0];
+    my $occurrence = occurrence($symbol);
+    ok(!$occurrence->is_changed);
+};
+
+subtest 'can detect incrementing' => sub  {
+    my $ppi = PPI::Document->new(\'++$bar');
+    my $symbol = $ppi->find_first('PPI::Token::Symbol');
+    my $occurrence = occurrence($symbol);
+    ok($occurrence->is_changed);
+    $ppi = PPI::Document->new(\'$bar--');
+    $symbol = $ppi->find_first('PPI::Token::Symbol');
+    $occurrence = occurrence($symbol);
+};
 done_testing();
 __END__
 Some variable declaration examples:

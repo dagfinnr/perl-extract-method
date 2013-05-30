@@ -40,6 +40,9 @@ sub variables_in_selected {
         if ($occurrence->is_declaration) {
             $vars{$occurrence->variable_id}->declared_in_selection(1);
         }
+        if ($occurrence->is_changed) {
+            $vars{$occurrence->variable_id}->is_changed_in_selection(1);
+        }
     }
     return \%vars;
 }

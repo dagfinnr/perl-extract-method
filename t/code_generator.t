@@ -94,7 +94,7 @@ subtest 'can generate return statement' => sub  {
 subtest 'can generate simplifed return statement if only one var' => sub  {
     setup(q!
         my $foo;
-        $bar;
+        $bar = 1;
         $foo;
     }
     $bar;
@@ -122,7 +122,7 @@ subtest 'can generate list of returned vars' => sub  {
 subtest 'can generate simplifed list of returned vars if only one var' => sub  {
     setup(q!
         my $foo;
-        $bar;
+        $bar = 1;
         $foo;
     }
     $bar;

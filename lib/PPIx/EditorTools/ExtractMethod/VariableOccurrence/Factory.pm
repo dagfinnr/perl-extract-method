@@ -11,8 +11,33 @@ sub occurrence_from_symbol {
         is_loop_variable_declaration => $self->is_loop_variable_declaration($symbol),
         variable_type => $self->variable_type($symbol),
         variable_name => $self->variable_name($symbol),
+        is_changed => $self->is_changed($symbol),
     );
 }
+sub is_changed {
+    my ($self, $symbol) = @_;
+    if ($symbol->snext_sibling) {
+        return 1 if $self->is_assignment_operator($symbol->snext_sibling->content);
+        return 1 if $self->is_increment_operator($symbol->snext_sibling->content);
+    }
+    if ($symbol->previous_sibling) {
+        return 1 if $self->is_increment_operator($symbol->sprevious_sibling->content);
+    }
+    return 0;
+}
+
+sub is_assignment_operator {
+    my ($self, $string) = @_;
+    my %ops = map {$_ => 1} qw{= **= += *= &= <<= &&= -= /= |= >>= ||= .= %= ^= //= x=};
+    return $ops{$string};
+}
+
+sub is_increment_operator {
+    my ($self, $string) = @_;
+    my %ops = map {$_ => 1} qw{++ --};
+    return $ops{$string};
+}
+
 sub is_declaration {
     return $_[0]->is_single_declaration() ||
     $_[0]->is_loop_variable_declaration ||

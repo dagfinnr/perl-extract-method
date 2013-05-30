@@ -4,6 +4,7 @@ has 'name'   => ( is => 'ro', isa => 'Str', required => 1 );
 has 'id'   => ( is => 'ro', isa => 'Str' );
 has 'type'   => ( is => 'ro', isa => 'Str', required => 1 );
 
+has 'is_changed_in_selection' => ( is => 'rw', isa => 'Bool', default => 0 );
 has 'used_after' => ( is => 'rw', isa => 'Bool', default => 0 );
 has 'declared_in_selection' => ( is => 'rw', isa => 'Bool', default => 0 );
 

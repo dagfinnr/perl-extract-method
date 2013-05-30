@@ -27,7 +27,7 @@ subtest 'extract method from extract method' => sub  {
     );
     $extractor->extract_method('foo');
     like($extractor->code,
-        qr/my \(\$editor\).*\(\$name, \$editor\) = \$self->foo\(\$name\);/s
+        qr/my \(\$editor\).*\$editor = \$self->foo\(\$name\);/s
     );
 };
 done_testing();

@@ -120,7 +120,7 @@ sub rename {
 	#warn "VARNAME: $varname";
 
 my ($patterns, @patterns, $type);
-($varname, $type, $patterns) = $self->symbol_patterns($varname);
+($type, $patterns) = $self->symbol_patterns($varname);
 @patterns = @$patterns;
 	my %unique;
 	my $finder_regexp = '(?:' . join( '|', grep { !$unique{$_}++ } @patterns ) . ')';
@@ -205,7 +205,7 @@ my ($self, $varname) = @_;
 			quotemeta($varname) . "(?![\[\{])"
 		);
 	}
-return ($varname, $type, \@patterns);
+return ($type, \@patterns);
 }
 
 # converts a variable name to camel case and optionally converts the

@@ -7,11 +7,12 @@ has 'ppi_symbol'   => (
     handles => [ qw / content parent / ],
 );
 
-has 'is_single_declaration'   => ( is => 'ro', isa => 'Bool' );
-has 'is_list_declaration'   => ( is => 'ro', isa => 'Bool' );
-has 'is_loop_variable_declaration'   => ( is => 'ro', isa => 'Bool' );
+has 'is_single_declaration'   => ( is => 'ro', isa => 'Bool', default => 0 );
+has 'is_list_declaration'   => ( is => 'ro', isa => 'Bool', default => 0 );
+has 'is_loop_variable_declaration'   => ( is => 'ro', isa => 'Bool', default => 0 );
 has 'variable_type'   => ( is => 'ro', isa => 'Str' );
 has 'variable_name'   => ( is => 'ro', isa => 'Str' );
+has 'is_changed'   => ( is => 'ro', isa => 'Bool', default => 0 );
 
 
 sub is_declaration {
