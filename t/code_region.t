@@ -18,6 +18,19 @@ subtest 'can find quote tokens' => sub  {
     isa_ok($tokens->[1], 'PPI::Token::Regexp::Substitute');
 };
 
+subtest 'can find out whether variable occurs in region' => sub  {
+    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        ppi => PPI::Document->new(\q!"$qux";
+        "$foo/$bar";
+        s/$foo/$bar/'
+        "$quux";
+        !
+    ),
+        selected_range => [2,3],
+    );
+    ok($region->has_variable('$foo'));
+    ok(!$region->has_variable('$qux'));
+};
 subtest 'can find quoted variable occurrences' => sub  {
     $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
         ppi => PPI::Document->new(\'"$foo/$bar"; s/$foo/$bar/'),

@@ -76,6 +76,13 @@ sub find_quote_tokens {
     return $self->find($finder); 
 }
 
+sub has_variable {
+    my ($self, $var_id) = @_;
+    my @occurrences = $self->find_variable_occurrences;
+    my %set = map { $_ => 1 } map { $_->variable_id } @occurrences;
+    return $set{$var_id};
+}
+
 sub find {
     my ($self, $finder) = @_;
     return $self->scope->find($finder) || [] if $self->scope;
