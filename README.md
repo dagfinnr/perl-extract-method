@@ -119,6 +119,8 @@ me or that I've come across while testing.
 * Possible collisions with variable names when referencing and dereferencing
   arrays and hashes. I chose not to create cryptic names for the references.
   It's more readable, but unsafe.
+* Errors and warnings from the `editortools` code end up inside the document instead of 
+  of being displayed in a user-friendly manner. 
 
 The following two are only cosmetic; they have no effect on how the code
 works.
