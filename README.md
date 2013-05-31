@@ -105,8 +105,8 @@ me or that I've come across while testing.
 * Does not give you any warning if the code you select includes part of
   a scope, rendering the refactoring meaningless.
 * `$self` is hard-coded as the variable representing the current instance.
-* Ignores some [special variables](http://perldoc.perl.org/perlvar.html#SPECIAL-VARIABLES), but not all.
-  Relatively simple to fix by adding to the `is_special_variable` method of the
+* Ignores some [special variables](http://perldoc.perl.org/perlvar.html#SPECIAL-VARIABLES), 
+  but not all. Relatively simple to fix by adding to the `is_special_variable` method of the
   Variable class.
 * Does not handle or warn about `return` statements inside the selected code.
 * Often returns variables unnecessarily from the extracted method. If
@@ -119,8 +119,10 @@ me or that I've come across while testing.
 * Possible collisions with variable names when referencing and dereferencing
   arrays and hashes. I chose not to create cryptic names for the references.
   It's more readable, but unsafe.
-* Errors and warnings from the `editortools` code end up inside the document instead of 
-  of being displayed in a user-friendly manner. 
+* Errors and warnings from the `editortools` code end up inside the document
+  instead of of being displayed in a user-friendly manner. 
+* The principle of looking after the selected code for variables to return
+  will not always work if the selected region code is inside a loop;
 
 The following two are only cosmetic; they have no effect on how the code
 works.
