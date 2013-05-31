@@ -12,6 +12,7 @@ sub occurrence_from_symbol {
         variable_type => $self->variable_type($symbol),
         variable_name => $self->variable_name($symbol),
         is_changed => $self->is_changed($symbol),
+        location => $symbol->location,
     );
 }
 sub is_changed {
