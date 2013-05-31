@@ -16,7 +16,7 @@ has 'selected_range' => (
     }
 );
 
-has 'scope' => ( is => 'ro', isa => 'PPI::Element' );
+has 'scope' => ( is => 'ro', isa => 'Maybe[PPI::Element]' );
 
 sub find_variable_occurrences {
     my $self = shift ;
@@ -25,7 +25,6 @@ sub find_variable_occurrences {
     @result = (@result, $self->find_quoted_variable_occurrences);
     return @result;
 }
-
 
 sub find_quoted_variable_occurrences {
     my $self = shift ;
@@ -43,19 +42,15 @@ sub find_quoted_variable_occurrences {
 
 sub find_unquoted_variable_occurrences {
     my $self = shift ;
-    my $finder = sub {
-        return $_[1]->isa('PPI::Token::Symbol')
-        && $self->selected_range->contains_line($_[1]->location->[0]);
-    };
-    my $symbols = $self->find($finder);
+    my $symbols = $self->find_symbols();
     my $factory = PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory->new;
     return map { $factory->occurrence_from_symbol($_) } @$symbols;
 }
 
+
 sub find_quote_tokens {
     my $self = shift ;
     my $finder = sub { 
-        return 0 if !$self->selected_range->contains_line($_[1]->location->[0]);
         my @excluded_classes = qw(
             PPI::Token::Quote::Single
             PPI::Token::Quote::Literal
@@ -83,10 +78,23 @@ sub has_variable {
     return $set{$var_id};
 }
 
+sub find_symbols {
+    my ($self) = @_;
+    my $finder = sub {
+        return $_[1]->isa('PPI::Token::Symbol')
+    };
+    return $self->find($finder);
+}
 sub find {
     my ($self, $finder) = @_;
-    return $self->scope->find($finder) || [] if $self->scope;
-    return $self->ppi->find($finder) || [];
+    my $find_in_range = sub { 
+        return 0 if !$self->selected_range->contains_line($_[1]->location->[0]);
+        &$finder;
+    };
+    if ($self->scope) {
+        return $self->scope->find($find_in_range) || [];
+    }
+    return $self->ppi->find($find_in_range) || [];
 }
 
 
