@@ -9,6 +9,13 @@ sub occurrence {
     $factory->occurrence_from_symbol($symbol);
 }
 
+subtest 'can set location' => sub  {
+    my $ppi = PPI::Document->new( \'my $foo = $bar' );
+    my $symbol = $ppi->find('PPI::Token::Symbol')->[1];
+    my $occurrence = occurrence($symbol);
+    is(join(';', @{$occurrence->location}), '1;11;11;1;');
+};
+
 subtest 'can generate variable name and id' => sub  {
     my $ppi = PPI::Document->new( \'my $foo = $bar' );
     my $symbol = $ppi->find('PPI::Token::Symbol')->[1];
