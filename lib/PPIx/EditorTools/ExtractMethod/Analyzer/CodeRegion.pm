@@ -13,7 +13,8 @@ has 'selected_range' => (
     coerce => 1,
     default => sub { 
         PPIx::EditorTools::ExtractMethod::LineRange->all;
-    }
+    },
+    handles => [ qw / start end / ],
 );
 
 has 'scope' => ( is => 'ro', isa => 'Maybe[PPI::Element]' );
@@ -87,6 +88,7 @@ sub find_symbols {
 }
 sub find {
     my ($self, $finder) = @_;
+    die "CodeRegion->find() accepts only callbacks" if !(ref $finder eq 'CODE');
     my $find_in_range = sub { 
         return 0 if !$self->selected_range->contains_line($_[1]->location->[0]);
         &$finder;

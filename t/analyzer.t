@@ -113,7 +113,7 @@ subtest 'can identify variable declared outside selected region' => sub  {
 
 subtest 'can know variable is used after selected region' => sub {
     setup();
-    my $vars = $analyzer->output_variables;
+    my $vars = $analyzer->result->variables;
     ok ($vars->{ '$bar' }->used_after);
     ok (!$vars->{ '$inside' }->used_after);
     ok (!$vars->{ '$foo' }->used_after);
@@ -121,7 +121,7 @@ subtest 'can know variable is used after selected region' => sub {
 
 subtest 'ignores variables completely outside' => sub {
     setup();
-    my $vars = $analyzer->output_variables;
+    my $vars = $analyzer->result->variables;
     ok (! defined $vars->{ '$grault' });
 };
 

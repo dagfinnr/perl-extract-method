@@ -18,7 +18,7 @@ sub setup {
     $analyzer->code($code);
     $analyzer->selected_range([3,4]);
     my $sorter = PPIx::EditorTools::ExtractMethod::VariableSorter->new(
-        input => $analyzer->output_variables,
+        analyzer_result => $analyzer->result,
     );
     $sorter->process_input;
     $generator = PPIx::EditorTools::ExtractMethod::CodeGenerator->new(

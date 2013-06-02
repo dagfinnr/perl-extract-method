@@ -2,6 +2,15 @@ use Test::More;
 use PPIx::EditorTools::ExtractMethod::VariableSorter;
 my ($sorter, $var);
 
+sub analyzer_result {
+    my $vars = shift;
+    $sorter->analyzer_result(
+        PPIx::EditorTools::ExtractMethod::Analyzer::Result->new(
+            variables => $vars
+        )
+    );
+}
+
 sub setup {
     my $options = shift;
     $sorter = PPIx::EditorTools::ExtractMethod::VariableSorter->new;
@@ -12,9 +21,15 @@ sub setup {
         used_after => $options->{used_after},
         is_changed_in_selection => $options->{is_changed_in_selection} || 0,
     );
-    $sorter->input({'$foo' => $var});
+    analyzer_result({'$foo' => $var});
     $sorter->process_input();
 }
+
+subtest 'sorter remembers the fact that the selected area ends in a return statement' => sub  {
+    ok(1);
+
+    #body ...
+};
 
 subtest 'scalar declared before and used inside' => sub  {
     setup({declared_in_selection => 0, used_after => 0});
@@ -84,7 +99,7 @@ subtest 'eliminates $self' => sub  {
         declared_in_selection => 0,
         used_after => 0,
     );
-    $sorter->input({'$self' => $var});
+    analyzer_result({'$self' => $var});
     $sorter->process_input();
     is_deeply( $sorter->pass_bucket, [ ] );
     is_deeply( $sorter->return_bucket, [ ] );
@@ -100,7 +115,7 @@ subtest 'eliminates special variables' => sub  {
         declared_in_selection => 0,
         used_after => 0,
     );
-    $sorter->input({'$self' => $var});
+    analyzer_result({'$self' => $var});
     $sorter->process_input();
     is_deeply( $sorter->pass_bucket, [ ] );
     is_deeply( $sorter->return_bucket, [ ] );

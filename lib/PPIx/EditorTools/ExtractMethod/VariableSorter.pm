@@ -2,10 +2,17 @@
 # selected region and used after. These must be declared on the outside as
 # well.
 package PPIx::EditorTools::ExtractMethod::VariableSorter;
-use PPIx::EditorTools::ExtractMethod::Variable;
 use Moose;
 
+use PPIx::EditorTools::ExtractMethod::Variable;
+use PPIx::EditorTools::ExtractMethod::Analyzer::Result;
 has 'input'   => ( is => 'rw', isa => 'HashRef' );
+
+
+has 'analyzer_result'   => (
+    is => 'rw',
+    isa => 'PPIx::EditorTools::ExtractMethod::Analyzer::Result' 
+);
 
 has 'return_bucket' => (
     traits  => ['Array'],
@@ -79,7 +86,7 @@ sub to_return {
 
 sub process_input {
     my $self = shift;
-    foreach my $var (values %{$self->input}) {
+    foreach my $var (values %{$self->analyzer_result->variables}) {
         next if ($var->name eq 'self');
         next if ($var->is_special_variable);
         if (!$var->declared_in_selection && !$var->used_after)

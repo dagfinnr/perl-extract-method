@@ -70,8 +70,8 @@ generated code at the appropriate places.
 
 sub extract_method {
     my ($self, $name) = @_;
-    my $vars = $self->analyzer->output_variables();
-    $self->sorter->input($vars);
+    $self->sorter->input($self->analyzer->result->variables);
+    $self->sorter->analyzer_result($self->analyzer->result);
     $self->sorter->process_input;
     my $editor = PPIx::EditorTools::ExtractMethod::CodeEditor->new(
         code => $self->code,

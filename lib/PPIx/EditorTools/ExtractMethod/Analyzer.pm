@@ -7,6 +7,7 @@ use PPIx::EditorTools::ExtractMethod::Variable;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence;
 use PPIx::EditorTools::ExtractMethod::LineRange;
 use PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
+use PPIx::EditorTools::ExtractMethod::Analyzer::Result;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
 use Set::Scalar;
 
@@ -39,6 +40,20 @@ sub _build_selected_region {
         ppi => $self->ppi,
     );
 }
+sub result {
+    my $self = shift ;
+    my $inside_vars = $self->variables_in_selected;
+    my $after_vars = $self->variables_after_selected;
+    foreach my $id ( keys %$inside_vars ) {
+        if (defined $after_vars->{$id}) {
+            $inside_vars->{$id}->used_after(1);
+        }
+    }
+    return PPIx::EditorTools::ExtractMethod::Analyzer::Result->new(
+        variables => $inside_vars
+    );
+}
+
 sub variables_in_selected {
     my $self = shift;
     my @occurrences = $self->selected_region->find_variable_occurrences();
