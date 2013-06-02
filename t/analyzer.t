@@ -25,6 +25,20 @@ sub setup {
     $analyzer->selected_range([3,4]);
 }
 
+subtest 'knows if there is a return statement at the end of the selected region' => sub  {
+    setup(q!
+        
+        my $qux;
+        return $qux;!
+    );
+    ok($analyzer->return_at_end);
+    setup(q!
+        my $qux;
+        return $qux;
+        $qux = 1;!
+    );
+    ok(!$analyzer->return_at_end);
+};
 subtest 'can identify variables within selected region' => sub  {
     setup();
     my $vars = $analyzer->variables_in_selected;

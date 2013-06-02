@@ -124,16 +124,14 @@ sub find_declaration_for_variable {
     return PPIx::EditorTools::find_variable_declaration($token);
 }
 
-sub output_variables {
+sub return_at_end {
     my $self = shift;
-    my $inside_vars = $self->variables_in_selected;
-    my $after_vars = $self->variables_after_selected;
-    foreach my $id ( keys %$inside_vars ) {
-        if (defined $after_vars->{$id}) {
-            $inside_vars->{$id}->used_after(1);
-        }
-    }
-    return $inside_vars;
+    my $breaks = $self->selected_region->find(sub { $_[1]->isa('PPI::Statement::Break')});
+    my $last_break_statement = pop @$breaks;
+    return 0 if !$last_break_statement;
+    return 0 if !$last_break_statement->first_token->content eq 'return';
+    return 0 if $last_break_statement->line_number != $self->selected_region->end;
+    return 1;
 }
 
 sub enclosing_scope {
