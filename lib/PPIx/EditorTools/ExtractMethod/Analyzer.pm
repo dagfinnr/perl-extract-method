@@ -50,7 +50,8 @@ sub result {
         }
     }
     return PPIx::EditorTools::ExtractMethod::Analyzer::Result->new(
-        variables => $inside_vars
+        variables => $inside_vars,
+        return_statement_at_end => $self->return_at_end
     );
 }
 

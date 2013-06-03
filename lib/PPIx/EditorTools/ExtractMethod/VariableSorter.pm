@@ -8,6 +8,7 @@ use PPIx::EditorTools::ExtractMethod::Variable;
 use PPIx::EditorTools::ExtractMethod::Analyzer::Result;
 has 'input'   => ( is => 'rw', isa => 'HashRef' );
 
+has 'return_statement_at_end'   => ( is => 'rw', isa => 'Bool', default => 0);
 
 has 'analyzer_result'   => (
     is => 'rw',
@@ -86,6 +87,7 @@ sub to_return {
 
 sub process_input {
     my $self = shift;
+    $self->return_statement_at_end($self->analyzer_result->return_statement_at_end);
     foreach my $var (values %{$self->analyzer_result->variables}) {
         next if ($var->name eq 'self');
         next if ($var->is_special_variable);

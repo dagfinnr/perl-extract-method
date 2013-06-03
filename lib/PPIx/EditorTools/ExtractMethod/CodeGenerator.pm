@@ -9,9 +9,18 @@ sub method_call {
     my ($self, $method_name) = @_;
     my $code = '$self->' . $method_name . 
     '(' . join(', ', $self->pass_list_external) . ');';
-    $code = $self->returned_vars . ' = ' . $code if $self->return_vars;
-    $code = $self->return_declarations . "\n" . $code if $self->return_by_ref_vars;
-    $code .= "\n" . $self->return_dereference;
+    my $method_call_return = '';
+    if ($self->sorter->return_statement_at_end) {
+        $method_call_return = 'return ';
+    } elsif ($self->return_vars) {
+        $method_call_return = $self->returned_vars . ' = ';
+    }
+    $code = $method_call_return . $code;
+    if (!$self->sorter->return_statement_at_end) {
+        $code = $self->return_declarations . "\n" . $code if $self->return_by_ref_vars;
+        $code .= "\n" . $self->return_dereference;
+    }
+    return $code;
 }
 
 sub method_body {

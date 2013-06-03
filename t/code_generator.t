@@ -46,6 +46,20 @@ subtest 'omits return list when nothing to return' => sub  {
     );
 };
 
+subtest 'omits return list and adds return statement when selected code has return statement at end' => sub  {
+    setup( q!sub foo{
+        # one
+        $qux = 42;
+        # two
+        }!
+    ); 
+    $generator->sorter->return_statement_at_end(1);
+    is(
+        $generator->method_call('new_method'),
+        'return $self->new_method($qux);'
+    );
+};
+
 subtest 'can generate list of variables to pass' => sub  {
     setup();
     is(join(',', $generator->pass_list_external), '$qux,$baz,\@inside_array');

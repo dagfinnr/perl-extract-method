@@ -32,6 +32,7 @@ subtest 'knows if there is a return statement at the end of the selected region'
         return $qux;!
     );
     ok($analyzer->return_at_end);
+    ok($analyzer->result->return_statement_at_end);
     setup(q!
         my $qux;
         return $qux;
