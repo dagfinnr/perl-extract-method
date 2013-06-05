@@ -1,11 +1,10 @@
 package PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
 use Moose;
-use PPIx::EditorTools::ExtractMethod::VariableOccurrence;
-use PPIx::EditorTools::ExtractMethod::Variable;
+use aliased 'PPIx::EditorTools::ExtractMethod::VariableOccurrence';
 
 sub occurrence_from_symbol {
     my ($self, $symbol) = @_;
-    return PPIx::EditorTools::ExtractMethod::VariableOccurrence->new(
+    return VariableOccurrence->new(
         ppi_symbol => $symbol,
         is_single_declaration => $self->is_single_declaration($symbol),
         is_list_declaration => $self->is_list_declaration($symbol),

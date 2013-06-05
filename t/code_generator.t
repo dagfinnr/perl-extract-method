@@ -1,11 +1,11 @@
 use Test::More;
-use PPIx::EditorTools::ExtractMethod::CodeGenerator;
-use PPIx::EditorTools::ExtractMethod::Analyzer;
-use PPIx::EditorTools::ExtractMethod::VariableSorter;
+use aliased 'PPIx::EditorTools::ExtractMethod::CodeGenerator';
+use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer';
+use aliased 'PPIx::EditorTools::ExtractMethod::VariableSorter';
 my ($generator, $analyzer);
 
 sub setup {
-    $analyzer = PPIx::EditorTools::ExtractMethod::Analyzer->new();
+    $analyzer = Analyzer->new();
     my $code = shift || q!my $qux; my $grault;
     if ($condition) {
         my %to_return = 42; $inside_array[0] = 43;
@@ -17,11 +17,11 @@ sub setup {
     $grault = 2!;
     $analyzer->code($code);
     $analyzer->selected_range([3,4]);
-    my $sorter = PPIx::EditorTools::ExtractMethod::VariableSorter->new(
+    my $sorter = VariableSorter->new(
         analyzer_result => $analyzer->result,
     );
     $sorter->process_input;
-    $generator = PPIx::EditorTools::ExtractMethod::CodeGenerator->new(
+    $generator = CodeGenerator->new(
         sorter => $sorter,
         selected_code => $analyzer->selected_code,
     );

@@ -3,8 +3,9 @@ use Moose;
 use PPI::Document;
 use PPIx::EditorTools;
 use PPIx::EditorTools::ExtractMethod::LineRange;
-use PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter;
-use PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
+use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter';
+use aliased 'PPIx::EditorTools::ExtractMethod::Variable';
+use aliased 'PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory' => 'VariableOccurrenceFactory';
 
 has 'ppi'   => ( is => 'ro', isa => 'Object' );
 
@@ -23,8 +24,8 @@ has 'scope' => ( is => 'ro', isa => 'Maybe[PPI::Element]' );
 sub find_variable_at_location {
     my ($self, $location) = @_;
     my $token = PPIx::EditorTools::find_token_at_location($self->ppi, $location);
-    my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory->occurrence_from_symbol($token);
-    return PPIx::EditorTools::ExtractMethod::Variable->from_occurrence($occurrence);
+    my $occurrence = VariableOccurrenceFactory->occurrence_from_symbol($token);
+    return Variable->from_occurrence($occurrence);
 
 }
 
@@ -41,7 +42,7 @@ sub find_quoted_variable_occurrences {
     my $tokens = $self->find_quote_tokens;
     my $result = [];
     foreach my $token (@$tokens) {
-        my @docs = PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter->to_ppi($token);
+        my @docs = Unquoter->to_ppi($token);
         foreach my $doc (@docs) {
             my $region = __PACKAGE__->new(ppi => $doc);
             @$result = (@$result, $region->find_unquoted_variable_occurrences);
@@ -53,7 +54,7 @@ sub find_quoted_variable_occurrences {
 sub find_unquoted_variable_occurrences {
     my $self = shift ;
     my $symbols = $self->find_symbols();
-    my $factory = PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory->new;
+    my $factory = VariableOccurrenceFactory->new;
     return map { $factory->occurrence_from_symbol($_) } @$symbols;
 }
 

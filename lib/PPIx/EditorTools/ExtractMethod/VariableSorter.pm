@@ -4,8 +4,9 @@
 package PPIx::EditorTools::ExtractMethod::VariableSorter;
 use Moose;
 
-use PPIx::EditorTools::ExtractMethod::Variable;
-use PPIx::EditorTools::ExtractMethod::Analyzer::Result;
+use aliased 'PPIx::EditorTools::ExtractMethod::Variable';
+use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::Result' => 'AnalyzerResult';
+
 has 'input'   => ( is => 'rw', isa => 'HashRef' );
 
 has 'return_statement_at_end'   => ( is => 'rw', isa => 'Bool', default => 0);

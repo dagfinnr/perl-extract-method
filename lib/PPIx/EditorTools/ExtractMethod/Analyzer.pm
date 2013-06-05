@@ -3,12 +3,12 @@ use Moose;
 
 use PPI::Document;
 use PPIx::EditorTools;
-use PPIx::EditorTools::ExtractMethod::Variable;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence;
 use PPIx::EditorTools::ExtractMethod::LineRange;
-use PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
-use PPIx::EditorTools::ExtractMethod::Analyzer::Result;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
+use aliased 'PPIx::EditorTools::ExtractMethod::Variable';
+use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion';
+use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::Result' => 'AnalyzerResult';
 use Set::Scalar;
 
 has 'code'   => ( is => 'rw', isa => 'Str' );
@@ -35,7 +35,7 @@ has 'selected_region'   => (
 
 sub _build_selected_region {
     my $self = shift;
-    return PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    return CodeRegion->new(
         selected_range => $self->selected_range,
         ppi => $self->ppi,
     );
@@ -49,7 +49,7 @@ sub result {
             $inside_vars->{$id}->used_after(1);
         }
     }
-    return PPIx::EditorTools::ExtractMethod::Analyzer::Result->new(
+    return AnalyzerResult->new(
         variables => $inside_vars,
         return_statement_at_end => $self->return_at_end
     );
@@ -61,7 +61,7 @@ sub variables_in_selected {
     my %vars;
     foreach my $occurrence ( @occurrences ) {
         if (! defined $vars{$occurrence->variable_id} ) {
-            $vars{$occurrence->variable_id} = PPIx::EditorTools::ExtractMethod::Variable->from_occurrence(
+            $vars{$occurrence->variable_id} = Variable->from_occurrence(
                 $occurrence,
             );
         }
@@ -89,7 +89,7 @@ sub variables_after_selected {
         && !$self->in_variable_scope($occurrence);
         my $id = $occurrence->variable_id;
         if (! defined $vars{$id} ) {
-            $vars{$id} = PPIx::EditorTools::ExtractMethod::Variable->from_occurrence(
+            $vars{$id} = Variable->from_occurrence(
                 $occurrence,
             );
             $vars{$id}->used_after(1);
@@ -103,7 +103,7 @@ sub in_current_scope {
         $self->ppi,
         [$self->selected_range->start, 1]);
     my $scope = $self->enclosing_scope($inside_element);
-    my $after_region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    my $after_region = CodeRegion->new(
         selected_range => [$self->selected_range->end + 1, 9999999],
         scope => $scope,
         ppi => $self->ppi,
@@ -118,7 +118,7 @@ sub in_variable_scope {
         });
     my $scope = $self->find_scope_for_variable($symbols_inside->[0]);
     return 0 if !$scope;
-    my $after_region_for_var = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    my $after_region_for_var = CodeRegion->new(
         selected_range => [$self->selected_range->end + 1, 9999999],
         scope => $scope,
         ppi => $self->ppi,

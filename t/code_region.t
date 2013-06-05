@@ -1,10 +1,10 @@
 use Test::More;
-use PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
+use aliased PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
 
 my ($region);
 
 subtest 'can find variable name at location' => sub  {
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => PPI::Document->new(\q!"$qux";
         my $foo = $bar;
         s/$foo/$bar/'
@@ -17,7 +17,7 @@ subtest 'can find variable name at location' => sub  {
 };
 
 subtest 'can find quote tokens' => sub  {
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => PPI::Document->new(\q!"$qux";
         "$foo/$bar";
         s/$foo/$bar/'
@@ -32,7 +32,7 @@ subtest 'can find quote tokens' => sub  {
 };
 
 subtest 'can find out whether variable occurs in region' => sub  {
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => PPI::Document->new(\q!"$qux";
         "$foo/$bar";
         s/$foo/$bar/'
@@ -45,7 +45,7 @@ subtest 'can find out whether variable occurs in region' => sub  {
     ok(!$region->has_variable('$qux'));
 };
 subtest 'can find quoted variable occurrences' => sub  {
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => PPI::Document->new(\'"$foo/$bar"; s/$foo/$bar/'),
         selected_range => [1,9999],
     );
@@ -57,7 +57,7 @@ subtest 'can find quoted variable occurrences' => sub  {
 };
 
 subtest 'can search whole document' => sub  {
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => PPI::Document->new(\'my $foo = $bar;')
     );
     @names = map { $_->variable_id } $region->find_variable_occurrences;
@@ -66,7 +66,7 @@ subtest 'can search whole document' => sub  {
 };
 
 subtest 'can search line range with start and end' => sub  {
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => PPI::Document->new(\q!my $foo = $bar;
         my $quux;
         my @baz = %qux;
@@ -81,7 +81,7 @@ subtest 'can search line range with start and end' => sub  {
 };
 
 subtest 'can search line range with start but no end' => sub  {
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => PPI::Document->new(\q!my $foo = $bar;
         my $quux;
         my @baz = %qux;
@@ -106,7 +106,7 @@ subtest 'can search line range within scope' => sub  {
     !);
     my $scope = $doc->find_first('PPI::Structure::Block');
 
-    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+    $region = CodeRegion->new(
         ppi => $doc,
         scope => $scope,
         selected_range => [4,99999999],
