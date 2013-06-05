@@ -61,9 +61,8 @@ sub variables_in_selected {
     my %vars;
     foreach my $occurrence ( @occurrences ) {
         if (! defined $vars{$occurrence->variable_id} ) {
-            $vars{$occurrence->variable_id} = PPIx::EditorTools::ExtractMethod::Variable->new(
-                name => $occurrence->variable_name,
-                type => $occurrence->variable_type,
+            $vars{$occurrence->variable_id} = PPIx::EditorTools::ExtractMethod::Variable->from_occurrence(
+                $occurrence,
             );
         }
         if ($occurrence->is_declaration) {
@@ -88,12 +87,12 @@ sub variables_after_selected {
     foreach my $occurrence ( @occurrences ) {
         next if !$self->in_current_scope($occurrence)
         && !$self->in_variable_scope($occurrence);
-        if (! defined $vars{$occurrence->variable_id} ) {
-            $vars{$occurrence->variable_id} = PPIx::EditorTools::ExtractMethod::Variable->new(
-                name => $occurrence->variable_name,
-                type => $occurrence->variable_type,
-                used_after => 1,
+        my $id = $occurrence->variable_id;
+        if (! defined $vars{$id} ) {
+            $vars{$id} = PPIx::EditorTools::ExtractMethod::Variable->from_occurrence(
+                $occurrence,
             );
+            $vars{$id}->used_after(1);
         }
     }
     return \%vars;
