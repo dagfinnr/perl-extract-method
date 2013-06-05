@@ -7,6 +7,14 @@ has 'is_changed_in_selection' => ( is => 'rw', isa => 'Bool', default => 0 );
 has 'used_after' => ( is => 'rw', isa => 'Bool', default => 0 );
 has 'declared_in_selection' => ( is => 'rw', isa => 'Bool', default => 0 );
 
+sub from_occurrence {
+    my ($class, $occurrence) = @_;
+    return __PACKAGE__->new(
+        name => $occurrence->variable_name,
+        type => $occurrence->variable_type,
+    );
+}
+
 sub id {
     my $self = shift ;
     return $self->type . $self->name;

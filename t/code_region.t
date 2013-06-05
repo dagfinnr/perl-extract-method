@@ -3,6 +3,19 @@ use PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
 
 my ($region);
 
+subtest 'can find variable name at location' => sub  {
+    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        ppi => PPI::Document->new(\q!"$qux";
+        my $foo = $bar;
+        s/$foo/$bar/'
+        "$quux";
+        !
+    ));
+    my $var = $region->find_variable_at_location([2,14]);
+    is($var->id, '$foo');
+    
+};
+
 subtest 'can find quote tokens' => sub  {
     $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
         ppi => PPI::Document->new(\q!"$qux";

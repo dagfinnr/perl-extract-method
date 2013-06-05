@@ -1,6 +1,7 @@
 package PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
 use Moose;
 use PPI::Document;
+use PPIx::EditorTools;
 use PPIx::EditorTools::ExtractMethod::LineRange;
 use PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
@@ -18,6 +19,14 @@ has 'selected_range' => (
 );
 
 has 'scope' => ( is => 'ro', isa => 'Maybe[PPI::Element]' );
+
+sub find_variable_at_location {
+    my ($self, $location) = @_;
+    my $token = PPIx::EditorTools::find_token_at_location($self->ppi, $location);
+    my $occurrence = PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory->occurrence_from_symbol($token);
+    return PPIx::EditorTools::ExtractMethod::Variable->from_occurrence($occurrence);
+
+}
 
 sub find_variable_occurrences {
     my $self = shift ;

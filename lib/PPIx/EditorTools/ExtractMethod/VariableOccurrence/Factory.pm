@@ -1,6 +1,7 @@
 package PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
 use Moose;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence;
+use PPIx::EditorTools::ExtractMethod::Variable;
 
 sub occurrence_from_symbol {
     my ($self, $symbol) = @_;
