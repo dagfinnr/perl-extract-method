@@ -8,6 +8,7 @@ use PPIx::EditorTools::ExtractMethod::LineRange;
 use PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory;
 use aliased 'PPIx::EditorTools::ExtractMethod::Variable';
 use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion';
+use aliased 'PPIx::EditorTools::ExtractMethod::ScopeLocator';
 use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::Result' => 'AnalyzerResult';
 use Set::Scalar;
 
@@ -33,6 +34,18 @@ has 'selected_region'   => (
     lazy => 1,
 );
 
+has 'scope_locator'   => ( 
+    is => 'ro', 
+    isa => 'PPIx::EditorTools::ExtractMethod::ScopeLocator',
+    builder => '_build_scope_locator',
+    lazy => 1,
+    required => 1,
+);
+
+sub _build_scope_locator {
+    my $self = shift;
+    return ScopeLocator->new;
+}
 sub _build_selected_region {
     my $self = shift;
     return CodeRegion->new(
@@ -102,7 +115,7 @@ sub in_current_scope {
     my $inside_element =  PPIx::EditorTools::find_token_at_location(
         $self->ppi,
         [$self->selected_range->start, 1]);
-    my $scope = $self->enclosing_scope($inside_element);
+    my $scope = $self->scope_locator->enclosing_scope($inside_element);
     my $after_region = CodeRegion->new(
         selected_range => [$self->selected_range->end + 1, 9999999],
         scope => $scope,
@@ -129,7 +142,7 @@ sub in_variable_scope {
 sub find_scope_for_variable {
     my ($self, $token) = @_;
     my $decl = $self->find_declaration_for_variable($token);
-    return $self->enclosing_scope($decl);
+    return $self->scope_locator->enclosing_scope($decl);
 }
 
 sub find_declaration_for_variable {
@@ -145,16 +158,6 @@ sub return_at_end {
     return 0 if !$last_break_statement->first_token->content eq 'return';
     return 0 if $last_break_statement->line_number != $self->selected_region->end;
     return 1;
-}
-
-sub enclosing_scope {
-    my ($self, $element) = @_;
-    return if !$element;
-    $element = $element->parent;
-    while (!$element->scope) {
-        $element = $element->parent;
-    }
-    return $element;
 }
 
 sub selected_code {
