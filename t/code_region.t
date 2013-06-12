@@ -1,5 +1,5 @@
 use Test::More;
-use aliased PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
+use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion';
 
 my ($region);
 
@@ -15,6 +15,24 @@ subtest 'can find variable name at location' => sub  {
     is($var->id, '$foo');
     
 };
+
+subtest 'finds variable declaration in method' => sub  {
+    $region = PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion->new(
+        ppi => PPI::Document->new( \q!sub grault {
+        "$qux";
+        my $foo = $bar;
+        $foo;
+        }
+        !
+    ));
+    my $token = PPIx::EditorTools::find_token_at_location($region->ppi, [4,9]);
+    my $statement = $region->find_declaration_in_method($token);
+    is ($statement->content, 'my $foo = $bar;')
+
+};
+
+#subtest 'does not find variable declaration outside method' => sub  {
+#};
 
 subtest 'can find quote tokens' => sub  {
     $region = CodeRegion->new(

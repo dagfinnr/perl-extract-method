@@ -18,6 +18,11 @@ around BUILDARGS => sub {
     );
 };
 
+sub after_range {
+    my ($self, $line_range) = @_;
+    return __PACKAGE__->new( $line_range->end + 1, 99999999 );
+}
+
 sub all {
     my $class = shift ;
     return $class->new(0,99999999);

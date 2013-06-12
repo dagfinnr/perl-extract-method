@@ -115,13 +115,16 @@ sub in_current_scope {
     my $inside_element =  PPIx::EditorTools::find_token_at_location(
         $self->ppi,
         [$self->selected_range->start, 1]);
-    my $scope = $self->scope_locator->enclosing_scope($inside_element);
-    my $after_region = CodeRegion->new(
-        selected_range => [$self->selected_range->end + 1, 9999999],
-        scope => $scope,
-        ppi => $self->ppi,
-    );
+    my $after_region = $self->create_region_from_current_scope($inside_element);
+
     return $after_region->has_variable($occurrence->variable_id)
+}
+
+sub create_region_from_current_scope {
+    my ($self, $inside_element) = @_;
+    my $after_region = CodeRegion->after_region($self->selected_region);
+    $after_region->with_enclosing_scope($inside_element);
+    return $after_region;
 }
 
 sub in_variable_scope {
@@ -129,25 +132,17 @@ sub in_variable_scope {
     my $symbols_inside = $self->selected_region->find(sub {
             $_[1]->content eq $occurrence->variable_id;
         });
-    my $scope = $self->find_scope_for_variable($symbols_inside->[0]);
-    return 0 if !$scope;
-    my $after_region_for_var = CodeRegion->new(
-        selected_range => [$self->selected_range->end + 1, 9999999],
-        scope => $scope,
-        ppi => $self->ppi,
-    );
+    my ($after_region_for_var);
+    $after_region_for_var = $self->create_region_from_variable_scope($symbols_inside);
+
     return $after_region_for_var->has_variable($occurrence->variable_id);
 }
 
-sub find_scope_for_variable {
-    my ($self, $token) = @_;
-    my $decl = $self->find_declaration_for_variable($token);
-    return $self->scope_locator->enclosing_scope($decl);
-}
-
-sub find_declaration_for_variable {
-    my ($self, $token) = @_;
-    return PPIx::EditorTools::find_variable_declaration($token);
+sub create_region_from_variable_scope {
+    my ($self, $symbols_inside) = @_;
+    my $after_region_for_var = CodeRegion->after_region($self->selected_region);
+    $after_region_for_var->with_scope_for_variable($symbols_inside->[0]);
+    return $after_region_for_var;
 }
 
 sub return_at_end {

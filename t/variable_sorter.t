@@ -1,11 +1,13 @@
 use Test::More;
 use aliased 'PPIx::EditorTools::ExtractMethod::VariableSorter';
+use aliased 'PPIx::EditorTools::ExtractMethod::Variable';
+use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::Result' => 'AnalyzerResult';
 my ($sorter, $var);
 
 sub analyzer_result {
     my $vars = shift;
     $sorter->analyzer_result(
-        PPIx::EditorTools::ExtractMethod::Analyzer::Result->new(
+        AnalyzerResult->new(
             variables => $vars
         )
     );
@@ -14,7 +16,7 @@ sub analyzer_result {
 sub setup {
     my $options = shift;
     $sorter = VariableSorter->new;
-    $var = PPIx::EditorTools::ExtractMethod::Variable->new(
+    $var = Variable->new(
         name => 'foo',
         type => $options->{type} || '$',
         declared_in_selection => $options->{declared_in_selection},
@@ -93,7 +95,7 @@ subtest 'hash declared before and used both inside and after' => sub  {
 
 subtest 'eliminates $self' => sub  {
     $sorter = VariableSorter->new;
-    $var = PPIx::EditorTools::ExtractMethod::Variable->new(
+    $var = Variable->new(
         name => 'self',
         type => '$',
         declared_in_selection => 0,
@@ -109,7 +111,7 @@ subtest 'eliminates $self' => sub  {
 
 subtest 'eliminates special variables' => sub  {
     $sorter = VariableSorter->new;
-    $var = PPIx::EditorTools::ExtractMethod::Variable->new(
+    $var = Variable->new(
         name => '_',
         type => '$',
         declared_in_selection => 0,

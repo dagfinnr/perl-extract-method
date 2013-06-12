@@ -15,8 +15,18 @@ subtest 'can find enclosing scope for element' => sub  {
     is ($scope->parent->child(0)->content, "if");
     $scope = $locator->enclosing_scope($foo);
     is ($scope->parent->child(0)->content, "sub");
-
-
 };
 
+subtest 'can find scope for variable' => sub  {
+    $code = q!sub {
+    my $foo;
+    if (1) {
+        ($bar, $qux);
+    }!;
+    my $doc = PPI::Document->new(\$code);
+    my $foo = $doc->find_first( sub { $_[1]->content eq '$foo' } );
+    $locator = ScopeLocator->new(ppi => $doc);
+    my $scope = $locator->scope_for_variable($foo);
+    is ($scope->parent->child(0)->content, "sub");
+};
 done_testing();

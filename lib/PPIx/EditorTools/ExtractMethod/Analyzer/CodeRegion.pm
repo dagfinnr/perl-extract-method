@@ -2,10 +2,11 @@ package PPIx::EditorTools::ExtractMethod::Analyzer::CodeRegion;
 use Moose;
 use PPI::Document;
 use PPIx::EditorTools;
-use PPIx::EditorTools::ExtractMethod::LineRange;
+use aliased 'PPIx::EditorTools::ExtractMethod::LineRange';
 use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer::Unquoter';
 use aliased 'PPIx::EditorTools::ExtractMethod::Variable';
 use aliased 'PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory' => 'VariableOccurrenceFactory';
+use aliased 'PPIx::EditorTools::ExtractMethod::ScopeLocator';
 
 has 'ppi'   => ( is => 'ro', isa => 'Object' );
 
@@ -19,14 +20,38 @@ has 'selected_range' => (
     handles => [ qw / start end / ],
 );
 
-has 'scope' => ( is => 'ro', isa => 'Maybe[PPI::Element]' );
+has 'scope' => ( is => 'rw', isa => 'Maybe[PPI::Element]' );
+
+sub after_region {
+    my ($class, $region) = @_;
+    return __PACKAGE__->new(
+        ppi => $region->ppi,
+        selected_range => LineRange->after_range($region->selected_range),
+    );
+}
+
+sub with_enclosing_scope {
+    my ($self, $element) = @_;
+    $self->scope(ScopeLocator->enclosing_scope($element));
+    return $self;
+}
+
+sub with_scope_for_variable {
+    my ($self, $element) = @_;
+    $self->scope(ScopeLocator->scope_for_variable($element));
+    return $self;
+}
 
 sub find_variable_at_location {
     my ($self, $location) = @_;
     my $token = PPIx::EditorTools::find_token_at_location($self->ppi, $location);
     my $occurrence = VariableOccurrenceFactory->occurrence_from_symbol($token);
     return Variable->from_occurrence($occurrence);
+}
 
+sub find_declaration_in_method {
+    my ($self, $token) = @_;
+    return PPIx::EditorTools::find_variable_declaration($token);
 }
 
 sub find_variable_occurrences {
@@ -108,6 +133,5 @@ sub find {
     }
     return $self->ppi->find($find_in_range) || [];
 }
-
 
 1;

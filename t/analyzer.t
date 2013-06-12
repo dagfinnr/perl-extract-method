@@ -76,21 +76,6 @@ subtest 'can identify variable declared and used after in larger scope' => sub  
     is_deeply( [ sort keys %{$vars} ], [ qw / $qux / ]);
 };
 
-subtest 'can find scope for variable declaration' => sub  {
-    setup(q!  sub { my $qux;
-        if ($x) {
-            $qux;
-            $qux;
-            $bar;
-        }
-        $qux; }
-        !);
-    my $symbols = $analyzer->ppi->find(sub { $_[1]->content eq '$qux' });
-    my $expected = $analyzer->ppi->find_first('PPI::Structure::Block');
-    my $scope = $analyzer->find_scope_for_variable($symbols->[1]);
-    is($scope, $expected);
-};
-
 subtest 'identified variables are variable objects' => sub  {
     setup();
     my $vars = $analyzer->variables_in_selected;
