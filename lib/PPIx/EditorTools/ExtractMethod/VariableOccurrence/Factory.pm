@@ -4,18 +4,18 @@ use aliased 'PPIx::EditorTools::ExtractMethod::VariableOccurrence';
 
 sub occurrence_from_symbol {
     my ($self, $symbol) = @_;
-    return VariableOccurrence->new(
+    my $args = {
         ppi_symbol => $symbol,
-        is_single_declaration => $self->is_single_declaration($symbol),
-        is_multi_declaration => $self->is_multi_declaration($symbol),
-        is_loop_variable_declaration => $self->is_loop_variable_declaration($symbol),
-        variable_type => $self->variable_type($symbol),
-        variable_name => $self->variable_name($symbol),
-        is_changed => $self->is_changed($symbol),
-        is_incremented => $self->is_incremented($symbol),
-        is_decremented => $self->is_decremented($symbol),
         location => $symbol->location,
-    );
+    };
+    my @keys = qw/ is_single_declaration is_multi_declaration
+    is_loop_variable_declaration variable_type variable_name is_changed
+    is_incremented is_decremented is_in_assignment/;
+
+    foreach my $key (@keys) {
+        $args->{$key} = $self->$key($symbol);
+    }
+    return VariableOccurrence->new($args);
 }
 sub is_changed {
     my ($self, $symbol) = @_;
