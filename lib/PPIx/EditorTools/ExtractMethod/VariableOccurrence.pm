@@ -8,7 +8,7 @@ has 'ppi_symbol'   => (
 );
 
 has 'is_single_declaration'   => ( is => 'ro', isa => 'Bool', default => 0 );
-has 'is_list_declaration'   => ( is => 'ro', isa => 'Bool', default => 0 );
+has 'is_multi_declaration'   => ( is => 'ro', isa => 'Bool', default => 0 );
 has 'is_loop_variable_declaration'   => ( is => 'ro', isa => 'Bool', default => 0 );
 has 'variable_type'   => ( is => 'ro', isa => 'Str' );
 has 'variable_name'   => ( is => 'ro', isa => 'Str' );
@@ -20,7 +20,7 @@ has 'location'   => ( is => 'ro', isa => 'Maybe[ArrayRef]', default => sub{ [ 1,
 sub is_declaration {
     return $_[0]->is_single_declaration() ||
     $_[0]->is_loop_variable_declaration ||
-    $_[0]->is_list_declaration();
+    $_[0]->is_multi_declaration();
 }
 
 sub variable_id {

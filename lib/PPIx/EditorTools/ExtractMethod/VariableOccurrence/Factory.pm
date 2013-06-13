@@ -7,7 +7,7 @@ sub occurrence_from_symbol {
     return VariableOccurrence->new(
         ppi_symbol => $symbol,
         is_single_declaration => $self->is_single_declaration($symbol),
-        is_list_declaration => $self->is_list_declaration($symbol),
+        is_multi_declaration => $self->is_multi_declaration($symbol),
         is_loop_variable_declaration => $self->is_loop_variable_declaration($symbol),
         variable_type => $self->variable_type($symbol),
         variable_name => $self->variable_name($symbol),
@@ -62,7 +62,7 @@ sub is_decrement_operator {
 sub is_declaration {
     return $_[0]->is_single_declaration() ||
     $_[0]->is_loop_variable_declaration ||
-    $_[0]->is_list_declaration();
+    $_[0]->is_multi_declaration();
 }
 
 sub is_single_declaration {
@@ -72,7 +72,7 @@ sub is_single_declaration {
     && $symb->parent->child(2) == $symb;
 }
 
-sub is_list_declaration {
+sub is_multi_declaration {
     my $symb = $_[1];
     return 0 if !$symb->parent;
     if ( defined $symb->parent->parent && defined $symb->parent->parent->parent) {
