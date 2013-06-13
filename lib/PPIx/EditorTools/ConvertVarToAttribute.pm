@@ -80,8 +80,9 @@ sub replace_vars {
     foreach my $occurrence (@occurrences) {
         next if $occurrence->variable_name ne $self->current_name;
         if ($occurrence->is_declaration) {
-            my $decl_statement = $occurrence->ppi_symbol->statement;
-            my $replacement = $self->process_declaration($decl_statement);
+            my $decl_statement = $occurrence->ppi_symbol;
+            $decl_statement = $decl_statement->parent while ! $decl_statement->isa('PPI::Statement::Variable');
+            my $replacement = $self->process_declaration($decl_statement,$occurrence);
         }
         else {
             my $stmt = $occurrence->ppi_symbol->statement;
@@ -123,15 +124,15 @@ sub parenthesize_rhs {
 
 
 sub process_declaration {
-    my ($self, $stmt) = @_;
-    if ($self->is_single_declaration_with_assignment($stmt)) {
+    my ($self, $stmt, $occurrence) = @_;
+    if ($self->is_single_declaration_with_assignment($occurrence)) {
         $stmt->schild(0)->remove;
         $stmt->child(0)->remove if $stmt->child(0)->content =~ /^\s+/;
         $stmt->schild(0)->set_content('$self->' . $self->new_name);
         $self->parenthesize_rhs($stmt);
         return $stmt;
     }
-    if ($self->is_multi_declaration_without_assignment($stmt)) {
+    if ($self->is_multi_declaration_without_assignment($occurrence)) {
         my $symbol = $stmt->find_first(sub { 
                 $_[1]->isa('PPI::Token::Symbol') && $_[1]->content eq '$' . $self->current_name
             });
@@ -140,7 +141,7 @@ sub process_declaration {
         $symbol->remove;
         return $stmt;
     }
-    if ($self->is_multi_declaration_with_assignment($stmt)) {
+    if ($self->is_multi_declaration_with_assignment($occurrence)) {
         my $symbol = $stmt->find_first(sub { 
                 $_[1]->isa('PPI::Token::Symbol') && $_[1]->content eq '$' . $self->current_name
             });
@@ -151,12 +152,10 @@ sub process_declaration {
         $next_stmt->add_element(PPI::Token->new('('));
         $next_stmt->add_element(PPI::Token::Symbol->new('$'.$self->new_name));
         $next_stmt->add_element(PPI::Token->new(')'));
-        my $both = PPI::Statement->new;
-        $both->add_element($stmt);
-        $both->add_element(PPI::Token->new("\n"));
-        $both->add_element($next_stmt);
-        $both->add_element(PPI::Token->new(";"));
-        return $both;
+        $stmt->add_element(PPI::Token->new("\n"));
+        $stmt->add_element($next_stmt);
+        $stmt->add_element(PPI::Token->new(";"));
+        return $stmt;
     }
     # Single declaration without assignment
     $stmt->child(0)->delete while $stmt->children;
@@ -164,7 +163,8 @@ sub process_declaration {
 }
 
 sub is_single_declaration_with_assignment {
-    my ($self, $stmt) = @_;
+    my ($self, $occurrence) = @_;
+    my $stmt = $occurrence->parent;
     return 0 if $stmt->schild(0)->content ne 'my';
     return 0 if ! $stmt->schild(1)->isa('PPI::Token::Symbol');
     return 0 if $stmt->schild(2)->content ne '=';
@@ -172,18 +172,16 @@ sub is_single_declaration_with_assignment {
 }
 
 sub is_multi_declaration_without_assignment {
-    my ($self, $stmt) = @_;
-    return 0 if $stmt->schild(0)->content ne 'my';
-    return 0 if ! $stmt->schild(1)->isa('PPI::Structure::List');
-    return 0 if $stmt->schild(2)->content eq '=';
+    my ($self, $occurrence) = @_;
+    return 0 if !$occurrence->is_multi_declaration;
+    return 0 if $occurrence->is_in_assignment;
     return 1;
 }
 
 sub is_multi_declaration_with_assignment {
-    my ($self, $stmt) = @_;
-    return 0 if $stmt->schild(0)->content ne 'my';
-    return 0 if ! $stmt->schild(1)->isa('PPI::Structure::List');
-    return 0 if $stmt->schild(2)->content ne '=';
+    my ($self, $occurrence) = @_;
+    return 0 if !$occurrence->is_multi_declaration;
+    return 0 if !$occurrence->is_in_assignment;
     return 1;
 }
 

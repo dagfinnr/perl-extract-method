@@ -1,6 +1,14 @@
 use Test::More;
 use PPI::Document;
 use aliased 'PPIx::EditorTools::ConvertVarToAttribute';
+use aliased 'PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory' => 'VariableOccurrenceFactory';
+
+sub trim_code {
+    my $code = shift;
+    $code =~ s/^\s+//gm;
+    $code =~ s/\s+$//gm;
+    return $code;
+}
 
 my $refactoring;
 
@@ -8,10 +16,28 @@ sub setup {
     $refactoring = ConvertVarToAttribute->new(current_name => 'foo');
 }
 
+subtest 'can replace all uses including arg list' => sub  {
+    my $code = q!sub index { 
+    my ( $self, $c ) = @_; 
+    }!;
+    my $doc = PPI::Document->new(\$code);
+    $refactoring = ConvertVarToAttribute->new;
+    $refactoring->ppi($doc);
+    $refactoring->current_location([2,17]);
+    my $expected = trim_code(q!sub index { 
+    my ( $self, $c ) = @_;
+    $self->c($c);
+    }!);
+    is(trim_code($refactoring->replace_vars), $expected);
+};
+
 sub process {
     my $doc = PPI::Document->new(\$_[0]);
     my $statement = $doc->find_first('PPI::Statement')->remove;
-    return $refactoring->process_declaration($statement)->content;
+    my $symbol = $statement->find_first( sub { 
+            $_[1]->content eq '$' . $refactoring->current_name } );
+    my $occurrence = VariableOccurrenceFactory->occurrence_from_symbol($symbol);
+    return $refactoring->process_declaration($statement,$occurrence)->content;
 }
 
 subtest 'can remove from single declaration without assignment' => sub  {
@@ -64,7 +90,6 @@ subtest 'can find location of Moose attributes' => sub  {
     my $statements = $refactoring->find_attribute_definitions;
     is($statements->[0]->line_number, 13);
 };
-
 subtest 'can replace all uses of a variable' => sub  {
     setup();
     my $code = q!my $foo;
@@ -82,7 +107,6 @@ subtest 'can replace all uses of a variable' => sub  {
     !;
     is($refactoring->replace_vars, $expected);
 };
-
 subtest 'can replace incremented variable' => sub  {
     setup();
     my $code = q!my $foo;
