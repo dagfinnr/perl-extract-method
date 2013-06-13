@@ -66,8 +66,8 @@ sub moose_attribute {
 sub find_attribute_definitions {
     my $self = shift ;
     my $has = $self->ppi->find(sub {
-            $_[1]->parent->isa('PPI::Statement') && 
-            $_[1]->content eq 'has';
+            $_[1]->content eq 'has' &&
+            $_[1]->parent->isa('PPI::Statement')
         });
     return [ map {$_->statement} @$has ];
 }
