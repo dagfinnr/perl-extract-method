@@ -93,9 +93,23 @@ subtest 'can detect incrementing' => sub  {
     my $symbol = $ppi->find_first('PPI::Token::Symbol');
     my $occurrence = occurrence($symbol);
     ok($occurrence->is_changed);
+    ok($occurrence->is_incremented);
+    ok(!$occurrence->is_decremented);
     $ppi = PPI::Document->new(\'$bar--');
     $symbol = $ppi->find_first('PPI::Token::Symbol');
     $occurrence = occurrence($symbol);
+    ok($occurrence->is_changed);
+    ok(!$occurrence->is_incremented);
+    ok($occurrence->is_decremented);
+};
+
+subtest 'does not hallucinate incrementing' => sub  {
+    my $ppi = PPI::Document->new(\'$bar');
+    my $symbol = $ppi->find_first('PPI::Token::Symbol');
+    my $occurrence = occurrence($symbol);
+    ok(!$occurrence->is_changed);
+    ok(!$occurrence->is_incremented);
+    ok(!$occurrence->is_decremented);
 };
 done_testing();
 __END__

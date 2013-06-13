@@ -12,18 +12,16 @@ sub occurrence_from_symbol {
         variable_type => $self->variable_type($symbol),
         variable_name => $self->variable_name($symbol),
         is_changed => $self->is_changed($symbol),
+        is_incremented => $self->is_incremented($symbol),
+        is_decremented => $self->is_decremented($symbol),
         location => $symbol->location,
     );
 }
 sub is_changed {
     my ($self, $symbol) = @_;
-    if ($symbol->snext_sibling) {
-        return 1 if $self->is_assignment_operator($symbol->snext_sibling->content);
-        return 1 if $self->is_increment_operator($symbol->snext_sibling->content);
-    }
-    if ($symbol->previous_sibling) {
-        return 1 if $self->is_increment_operator($symbol->sprevious_sibling->content);
-    }
+    return 1 if $self->is_incremented($symbol);
+    return 1 if $self->is_decremented($symbol);
+    return 1 if $symbol->snext_sibling && $self->is_assignment_operator($symbol->snext_sibling->content);
     return 0;
 }
 
@@ -33,10 +31,32 @@ sub is_assignment_operator {
     return $ops{$string};
 }
 
-sub is_increment_operator {
+sub is_incremented {
+    my ($self, $symbol) = @_;
+    return 1 if $symbol->sprevious_sibling && $self->is_increment_operator($symbol->sprevious_sibling->content);
+    return 1 if $symbol->snext_sibling && $self->is_increment_operator($symbol->snext_sibling->content);
+    return 0;
+}
+
+sub is_decremented {
+    my ($self, $symbol) = @_;
+    return 1 if $symbol->sprevious_sibling && $self->is_decrement_operator($symbol->sprevious_sibling->content);
+    return 1 if $symbol->snext_sibling && $self->is_decrement_operator($symbol->snext_sibling->content);
+    return 0;
+}
+
+sub is_increment_or_decrement_operator {
     my ($self, $string) = @_;
-    my %ops = map {$_ => 1} qw{++ --};
-    return $ops{$string};
+    return $self->is_increment_operator($string) ||
+    $self->is_decrement_operator($string);
+}
+
+sub is_increment_operator {
+    return $_[1] eq '++';
+}
+
+sub is_decrement_operator {
+    return $_[1] eq '--';
 }
 
 sub is_declaration {
