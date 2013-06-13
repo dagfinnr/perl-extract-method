@@ -54,6 +54,17 @@ subtest 'can parse multi-variable declaration' => sub  {
     ok (!occurrence($used_symbol)->is_declaration);
 };
 
+subtest 'can parse multi-variable declaration in context' => sub  {
+    my $ppi = PPI::Document->new(\'sub index { my ( $self, $c ) = @_; }');
+    my $declared_symbol = $ppi->find('PPI::Token::Symbol')->[0];
+    my $occurrence = occurrence($declared_symbol);
+    ok ($occurrence->is_declaration);
+    ok ($occurrence->is_in_assignment);
+    my $declared_symbol = $ppi->find('PPI::Token::Symbol')->[1];
+    $occurrence = occurrence($declared_symbol);
+    ok ($occurrence->is_declaration);
+};
+
 subtest 'can identify type of simple variables' => sub {
     my $symbol = PPI::Token::Symbol->new;
     $symbol->set_content('$var');

@@ -84,6 +84,16 @@ sub is_multi_declaration {
     return 0;
 }
 
+sub is_in_assignment {
+    my $symb = $_[1];
+    return 0 if !$symb->parent;
+    if ( defined $symb->parent->parent && defined $symb->parent->parent->parent) {
+        my $decl = $symb->parent->parent->parent;
+        return $decl->find_first( sub {  $_[1]->content eq '=' } ) ? 1 : 0;
+    }
+    return 0;
+}
+
 sub is_loop_variable_declaration {
     my $symb = $_[1];
     return 0 if !$symb->parent;
