@@ -82,14 +82,43 @@ sub replace_vars {
         if ($occurrence->is_declaration) {
             my $decl_statement = $occurrence->ppi_symbol->statement;
             my $replacement = $self->process_declaration($decl_statement);
-            $decl_statement->insert_before($replacement);
-            $decl_statement->delete;
         }
         else {
+            my $stmt = $occurrence->ppi_symbol->statement;
+            $self->parenthesize_rhs($stmt);
             $occurrence->ppi_symbol->set_content('$self->' . $self->new_name);
+            if ($occurrence->is_incremented) {
+                my $op = $stmt->find_first(sub{ $_[1]->content eq '++' });
+                $op->delete;
+                $stmt->find_first(sub{ $_[1]->content eq ';' })->delete;
+                my $rhs = $stmt->clone;
+                $stmt->add_element(PPI::Token->new('('));
+                $rhs->add_element(PPI::Token->new(' + 1);'));
+                $stmt->add_element($rhs);
+            }
+            elsif ($occurrence->is_decremented) {
+                my $op = $stmt->find_first(sub{ $_[1]->content eq '--' });
+                $op->delete;
+                $stmt->find_first(sub{ $_[1]->content eq ';' })->delete;
+                my $rhs = $stmt->clone;
+                $stmt->add_element(PPI::Token->new('('));
+                $rhs->add_element(PPI::Token->new(' - 1);'));
+                $stmt->add_element($rhs);
+            }
         }
     }
     return $self->ppi->content;
+}
+
+sub parenthesize_rhs {
+    my ($self, $stmt) = @_;
+    my $eq = $stmt->find_first(sub { $_[1]->content eq '=' });
+    return unless $eq;
+    $eq->set_content('(');
+    $eq->next_token->remove while $eq->next_token->content =~ /^\s+/;
+    $eq->previous_token->remove while $eq->previous_token->content =~ /^\s+/;
+    my $end = $stmt->find_first(sub { $_[1]->content eq ';' });
+    $end->insert_before(PPI::Token->new(')'));
 }
 
 
@@ -99,6 +128,7 @@ sub process_declaration {
         $stmt->schild(0)->remove;
         $stmt->child(0)->remove if $stmt->child(0)->content =~ /^\s+/;
         $stmt->schild(0)->set_content('$self->' . $self->new_name);
+        $self->parenthesize_rhs($stmt);
         return $stmt;
     }
     if ($self->is_multi_declaration_without_assignment($stmt)) {
@@ -118,10 +148,9 @@ sub process_declaration {
         $next_stmt->add_element(PPI::Token::Symbol->new('$self'));
         $next_stmt->add_element(PPI::Token->new('->'));
         $next_stmt->add_element(PPI::Token->new($self->new_name));
-        $next_stmt->add_element(PPI::Token->new(' '));
-        $next_stmt->add_element(PPI::Token->new('='));
-        $next_stmt->add_element(PPI::Token->new(' '));
+        $next_stmt->add_element(PPI::Token->new('('));
         $next_stmt->add_element(PPI::Token::Symbol->new('$'.$self->new_name));
+        $next_stmt->add_element(PPI::Token->new(')'));
         my $both = PPI::Statement->new;
         $both->add_element($stmt);
         $both->add_element(PPI::Token->new("\n"));
@@ -129,7 +158,9 @@ sub process_declaration {
         $both->add_element(PPI::Token->new(";"));
         return $both;
     }
-    return PPI::Statement::Variable->new;
+    # Single declaration without assignment
+    $stmt->child(0)->delete while $stmt->children;
+    return $stmt;
 }
 
 sub is_single_declaration_with_assignment {
@@ -157,4 +188,3 @@ sub is_multi_declaration_with_assignment {
 }
 
 1;
-
