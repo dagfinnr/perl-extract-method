@@ -98,26 +98,35 @@ sub replace_vars {
             $self->parenthesize_rhs($occurrence);
             $occurrence->ppi_symbol->set_content('$self->' . $self->new_name);
             if ($occurrence->is_incremented) {
-                my $op = $stmt->find_first(sub{ $_[1]->content eq '++' });
-                $op->delete;
-                $stmt->find_first(sub{ $_[1]->content eq ';' })->delete;
-                my $rhs = $stmt->clone;
-                $stmt->add_element(PPI::Token->new('('));
-                $rhs->add_element(PPI::Token->new(' + 1);'));
-                $stmt->add_element($rhs);
+                $self->replace_incrementing($stmt);
             }
             elsif ($occurrence->is_decremented) {
-                my $op = $stmt->find_first(sub{ $_[1]->content eq '--' });
-                $op->delete;
-                $stmt->find_first(sub{ $_[1]->content eq ';' })->delete;
-                my $rhs = $stmt->clone;
-                $stmt->add_element(PPI::Token->new('('));
-                $rhs->add_element(PPI::Token->new(' - 1);'));
-                $stmt->add_element($rhs);
+                $self->replace_decrementing($stmt);
             }
         }
     }
     return $self->ppi->content;
+}
+
+sub replace_incrementing {
+    my ($self, $stmt) = @_;
+    $self->replace_increment_or_decrement($stmt, '+');
+}
+
+sub replace_decrementing {
+    my ($self, $stmt) = @_;
+    $self->replace_increment_or_decrement($stmt, '-');
+}
+
+sub replace_increment_or_decrement {
+    my ($self, $stmt, $char) = @_;
+    my $op = $stmt->find_first(sub{ $_[1]->content eq $char x 2 });
+    $op->delete;
+    $stmt->find_first(sub{ $_[1]->content eq ';' })->delete;
+    my $rhs = $stmt->clone;
+    $stmt->add_element(PPI::Token->new('('));
+    $rhs->add_element(PPI::Token->new(' ' . $char. ' 1);'));
+    $stmt->add_element($rhs);
 }
 
 sub parenthesize_rhs {
