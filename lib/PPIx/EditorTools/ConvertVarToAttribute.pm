@@ -41,9 +41,12 @@ sub replace {
 
 sub add_moose_attribute {
     my $self = shift;
-    my $attribute_statement = $self->find_attribute_definitions->[0];
+    my $insertion_point = $self->find_attribute_definitions->[0];
+    if (!$insertion_point) {
+        $insertion_point = $self->find_methods->[0];
+    }
     my $attr = $self->moose_attribute;
-    $attribute_statement->insert_before($attr);
+    $insertion_point->insert_before($attr);
 }
 
 sub moose_attribute {
@@ -63,12 +66,18 @@ sub moose_attribute {
     return $stmt;
 }
 
+sub find_methods {
+    my $self = shift ;
+    return $self->ppi->find('PPI::Statement::Sub');
+}
+
 sub find_attribute_definitions {
     my $self = shift ;
     my $has = $self->ppi->find(sub {
             $_[1]->content eq 'has' &&
             $_[1]->parent->isa('PPI::Statement')
         });
+    return [] if !$has;
     return [ map {$_->statement} @$has ];
 }
 
