@@ -54,6 +54,18 @@ subtest 'can parse multi-variable declaration' => sub  {
     ok (!occurrence($used_symbol)->is_declaration);
 };
 
+subtest 'can identify variable as left hand side of assignment' => sub  {
+    my $ppi = PPI::Document->new(\'$foo = $bar;');
+    my $lhs_symbol = $ppi->find('PPI::Token::Symbol')->[0];
+    my $rhs_symbol = $ppi->find('PPI::Token::Symbol')->[1];
+    my $lhs = occurrence($lhs_symbol);
+    my $rhs = occurrence($rhs_symbol);
+    #ok ($lhs->is_in_assignment);
+    ok ($lhs->is_lhs);
+    #ok ($rhs->is_in_assignment);
+    ok (!$rhs->is_lhs);
+};
+
 subtest 'can parse multi-variable declaration in context' => sub  {
     my $ppi = PPI::Document->new(\'sub index { my ( $self, $c ) = @_; }');
     my $declared_symbol = $ppi->find('PPI::Token::Symbol')->[0];

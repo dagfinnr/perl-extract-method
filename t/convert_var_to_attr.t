@@ -16,6 +16,14 @@ sub setup {
     $refactoring = ConvertVarToAttribute->new(current_name => 'foo');
 }
 
+subtest 'can find location of methods' => sub  {
+    setup();
+    my $doc = PPI::Document->new('t/data/input/Analyzer_error.pm');
+    $refactoring->ppi($doc);
+    my $elements = $refactoring->find_methods;
+    is($elements->[0]->line_number, 35);
+};
+
 subtest 'can replace all uses including arg list' => sub  {
     my $code = q!sub index { 
     my ( $self, $c ) = @_; 
@@ -90,6 +98,7 @@ subtest 'can find location of Moose attributes' => sub  {
     my $statements = $refactoring->find_attribute_definitions;
     is($statements->[0]->line_number, 13);
 };
+
 subtest 'can replace all uses of a variable' => sub  {
     setup();
     my $code = q!my $foo;

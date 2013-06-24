@@ -10,7 +10,7 @@ sub occurrence_from_symbol {
     };
     my @keys = qw/ is_single_declaration is_multi_declaration
     is_loop_variable_declaration variable_type variable_name is_changed
-    is_incremented is_decremented is_in_assignment/;
+    is_incremented is_decremented is_in_assignment is_lhs/;
 
     foreach my $key (@keys) {
         $args->{$key} = $self->$key($symbol);
@@ -87,6 +87,17 @@ sub is_multi_declaration {
 sub is_in_assignment {
     my $symb = $_[1];
     return 0 if !$symb->parent;
+    if ( defined $symb->parent->parent && defined $symb->parent->parent->parent) {
+        my $decl = $symb->parent->parent->parent;
+        return $decl->find_first( sub {  $_[1]->content eq '=' } ) ? 1 : 0;
+    }
+    return 0;
+}
+
+sub is_lhs {
+    my $symb = $_[1];
+    return 0 if !$symb->snext_sibling;
+    return $symb->snext_sibling->content eq '=';
     if ( defined $symb->parent->parent && defined $symb->parent->parent->parent) {
         my $decl = $symb->parent->parent->parent;
         return $decl->find_first( sub {  $_[1]->content eq '=' } ) ? 1 : 0;

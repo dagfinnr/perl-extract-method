@@ -95,7 +95,7 @@ sub replace_vars {
         }
         else {
             my $stmt = $occurrence->ppi_symbol->statement;
-            $self->parenthesize_rhs($stmt);
+            $self->parenthesize_rhs($occurrence);
             $occurrence->ppi_symbol->set_content('$self->' . $self->new_name);
             if ($occurrence->is_incremented) {
                 my $op = $stmt->find_first(sub{ $_[1]->content eq '++' });
@@ -121,9 +121,11 @@ sub replace_vars {
 }
 
 sub parenthesize_rhs {
-    my ($self, $stmt) = @_;
+    my ($self, $occurrence) = @_;
+    my $stmt = $occurrence->ppi_symbol->statement;
     my $eq = $stmt->find_first(sub { $_[1]->content eq '=' });
     return unless $eq;
+    return unless $occurrence->is_lhs;
     $eq->set_content('(');
     $eq->next_token->remove while $eq->next_token->content =~ /^\s+/;
     $eq->previous_token->remove while $eq->previous_token->content =~ /^\s+/;
@@ -138,7 +140,7 @@ sub process_declaration {
         $stmt->schild(0)->remove;
         $stmt->child(0)->remove if $stmt->child(0)->content =~ /^\s+/;
         $stmt->schild(0)->set_content('$self->' . $self->new_name);
-        $self->parenthesize_rhs($stmt);
+        $self->parenthesize_rhs($occurrence);
         return $stmt;
     }
     if ($self->is_multi_declaration_without_assignment($occurrence)) {
