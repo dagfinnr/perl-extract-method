@@ -9,3 +9,16 @@ function! ExtractMethod() range
 
     call Exec_command_and_replace_buffer( command )
 endfunction
+
+function! ConvertVarToAttribute()
+    let newvar = input("Attribute name? ")
+
+    let line = line('.')
+    " should backtrack to $ or % or the like
+    let col  = col('.')
+    let filename = expand('%')
+
+    let command = "editortools convertvartoattribute -c " . col . " -l " . line  . " -n " . newvar 
+
+    call Exec_command_and_replace_buffer( command )
+endfunction
