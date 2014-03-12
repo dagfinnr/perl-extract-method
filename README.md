@@ -6,6 +6,8 @@ A serious attempt to get serious refactoring tool support for Perl code.
 How to try it
 -------------
 
+NOTE: This hasn't been tested for a while. It might not work as advertised.
+
 1. Install PPIx::EditorTools and App::EditorTools from CPAN.
 2. Install the Vim script as explained in [the documentation](https://metacpan.org/module/App::EditorTools::Vim).
 2. Clone this repository.
