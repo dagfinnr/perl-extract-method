@@ -142,6 +142,15 @@ sub parenthesize_rhs {
     $end->insert_before(PPI::Token->new(')'));
 }
 
+=head2 process_declaration
+
+Given a variable declaration (my ...), replaces a variable occurrence
+with its corresponding attribute.
+
+Since multiple variables can be declared in one statement, this method must know
+both the statement and the variable occurrence.
+
+=cut
 
 sub process_declaration {
     my ($self, $stmt, $occurrence) = @_;

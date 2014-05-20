@@ -35,7 +35,13 @@ has 'pass_bucket' => (
         add_to_pass_bucket  => 'push',
     },
 );
+=head2 return_and_declare_bucket
 
+Variables that are declared inside the extracted region and used later need to
+be returned from the new method. When the method is extracted, there is no longer
+a declaration in the calling method's scope, and one must be added.
+
+=cut
 has 'return_and_declare_bucket' => (
     traits  => ['Array'],
     is      => 'ro',
@@ -46,6 +52,12 @@ has 'return_and_declare_bucket' => (
     },
 );
 
+=head2 return_by_ref_bucket
+
+Hashes and arrays must be returned by reference from the extracted method.
+
+=cut
+
 has 'return_by_ref_bucket' => (
     traits  => ['Array'],
     is      => 'ro',
@@ -55,6 +67,12 @@ has 'return_by_ref_bucket' => (
         add_to_return_by_ref_bucket  => 'push',
     },
 );
+
+=head2 pass_by_ref_bucket
+
+Hashes and arrays must be passed by reference to the extracted method.
+
+=cut
 
 has 'pass_by_ref_bucket' => (
     traits  => ['Array'],
