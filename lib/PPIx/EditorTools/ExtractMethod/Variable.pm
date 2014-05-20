@@ -31,6 +31,9 @@ sub is_special_variable {
     return 1 if $_[0]->name eq '\\';
     return 1 if $_[0]->name eq '#';
     return 1 if $_[0]->name =~ /^\d$/;
+    return 1 if $_[0]->name eq '^0';
+    return 1 if $_[0]->name eq 'ENV';
+    return 1 if $_[0]->name eq '$';
     return 0;
 }
 
