@@ -105,10 +105,6 @@ complexity of the analysis. It's one of the toughest problems I've ever worked
 on. The best source of information about it, outside this README, are the test
 cases in analyzer.t.
 
-The previous description does not describe the need to distinguish between uses
-of the variable and uses of other variables with the same name. These variables
-may occur outside the scope of the variable under consideration.
-
 It's easy to get confused by the fact that most of the entities we're working
 with are elements in the PPI parse tree, but the text selected for extraction
 isn't. It's fundamentally different in this respect.
