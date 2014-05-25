@@ -18,7 +18,15 @@ around BUILDARGS => sub {
     );
 };
 
-sub after_range {
+=head2 everything_after
+
+Returns a line range for the rest of the document after the current line range.
+
+Using a very large number is "cheating", but it works.
+
+=cut
+
+sub everything_after {
     my ($self, $line_range) = @_;
     return __PACKAGE__->new( $line_range->end + 1, 99999999 );
 }

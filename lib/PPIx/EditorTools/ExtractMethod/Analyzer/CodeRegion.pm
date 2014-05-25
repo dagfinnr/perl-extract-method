@@ -22,11 +22,18 @@ has 'selected_range' => (
 
 has 'scope' => ( is => 'rw', isa => 'Maybe[PPI::Element]' );
 
-sub after_region {
+
+=head2 everything_after
+
+Returns a code region for the rest of the document after the current code region.
+
+=cut
+
+sub everything_after {
     my ($class, $region) = @_;
     return __PACKAGE__->new(
         ppi => $region->ppi,
-        selected_range => LineRange->after_range($region->selected_range),
+        selected_range => LineRange->everything_after($region->selected_range),
     );
 }
 

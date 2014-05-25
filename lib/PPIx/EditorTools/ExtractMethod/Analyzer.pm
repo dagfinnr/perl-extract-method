@@ -112,6 +112,7 @@ sub variables_after_selected {
 }
 sub in_current_scope {
     my ($self, $occurrence) = @_;
+    # Token at start of selected region
     my $inside_element =  PPIx::EditorTools::find_token_at_location(
         $self->ppi,
         [$self->selected_range->start, 1]);
@@ -122,7 +123,7 @@ sub in_current_scope {
 
 sub create_region_from_current_scope {
     my ($self, $inside_element) = @_;
-    my $after_region = CodeRegion->after_region($self->selected_region);
+    my $after_region = CodeRegion->everything_after($self->selected_region);
     $after_region->with_enclosing_scope($inside_element);
     return $after_region;
 }
@@ -140,7 +141,7 @@ sub in_variable_scope {
 
 sub create_region_from_variable_scope {
     my ($self, $symbols_inside) = @_;
-    my $after_region_for_var = CodeRegion->after_region($self->selected_region);
+    my $after_region_for_var = CodeRegion->everything_after($self->selected_region);
     $after_region_for_var->with_scope_for_variable($symbols_inside->[0]);
     return $after_region_for_var;
 }
