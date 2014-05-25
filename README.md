@@ -102,9 +102,12 @@ I'm sure there are many more limitations than these. These are just some that oc
 me or that I've come across while testing.
 
 * No Emacs support.
+* Does not handle constants.
 * Does not handle `$#foo`
 * Does not give you any warning if the code you select includes part of
   a scope, rendering the refactoring meaningless.
+* Does not recognize variables inside single quotes inside double quotes, as in  
+  `"error '$message'"`
 * `$self` is hard-coded as the variable representing the current instance.
 * Ignores some [special variables](http://perldoc.perl.org/perlvar.html#SPECIAL-VARIABLES), 
   but not all. Relatively simple to fix by adding to the `is_special_variable` method of the
@@ -123,7 +126,7 @@ me or that I've come across while testing.
 * Errors and warnings from the `editortools` code end up inside the document
   instead of of being displayed in a user-friendly manner. 
 * The principle of looking after the selected code for variables to return
-  will not always work if the selected region code is inside a loop;
+  will not always work if the selected code is inside a loop;
 
 The following two are only cosmetic; they have no effect on how the code
 works.
