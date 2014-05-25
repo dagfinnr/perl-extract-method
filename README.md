@@ -69,8 +69,8 @@ locations in the file that's being edited.
 The main **ExtractMethod** class handles the overall process, delegating the
 steps to the others.
 
-Analyzing the variables
------------------------
+Analyzing the variables (somewhat simplistic)
+------------------------------------
 
 The most difficult part of this refactoring is analyzing the variables.
 
@@ -92,9 +92,55 @@ selected code.
 **Variables that are declared before, used inside and after the selected code:** (long
 arrow). These variables are passed to and returned from the extracted method.
 Actually, this only necessary if the variables are *assigned to* in the
-selected code, but the current implmentation does not check this.
+selected code, but the current implmentation does not check this in all cases.
 
 ![Code example](https://www.evernote.com/shard/s212/sh/3653d26e-4a58-4e8a-ade1-a0a351d12fa2/4424fe85ebc6a8b672d4e3915b611ff6/deep/0/Screenshot%2027.05.13%2012:04.png)
+
+Analyzing the variables (more sophisticated)
+------------------------------------
+
+**Eating my own dog food:** I have to admit that the code for the time being is
+not as easy to understand as I want it to be. This is partly because of the
+complexity of the analysis. It's one of the toughest problems I've ever worked
+on. The best source of information about it, outside this README, are the test
+cases in analyzer.t.
+
+The previous description does not describe the need to distinguish between uses
+of the variable and uses of other variables with the same name. These variables
+may occur outside the scope of the variable under consideration.
+
+It's easy to get confused by the fact that most of the entities we're working
+with are elements in the PPI parse tree, but the text selected for extraction
+isn't. It's fundamentally different in this respect.
+
+We have the following cases:
+
+**A variable occurs only inside the selected code.** The variable can be
+ignored.
+
+**A variable occurs only outside the selected code.** The variable can be
+ignored by starting the analysis with only the variables inside.
+
+**The selected region cuts across a scope boundary.** For instance, your
+selection might start inside a loop and end outside it. This is an impossible
+request from the user, and should be reported to the user as an error. This
+error handling is not implemented.
+
+**A variable's scope surrounds the selected code, and the variable is used
+inside the selected code.** This is basically the case described in the
+"simplistic" version. As far as I can tell right now, this implies 4 different
+regions that need to be considered separately.
+
+* The region inside the scope before the selected code.
+* The selected code
+* The region inside the scope after the selected code.
+* The region outside the variable's scope (both before and after). This must be
+  ignored. The only thing we need to do about it is to test that it is in fact
+  ignored.
+
+This entire analysis needs to be done separately for each variable, since their
+scopes may be different.
+
 Current limitations
 -------------------
 
