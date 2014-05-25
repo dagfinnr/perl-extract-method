@@ -137,6 +137,10 @@ regions that need to be considered separately.
 This entire analysis needs to be done separately for each variable, since their
 scopes may be different.
 
+This indicates a class structure somewhat like the diagram.
+
+![Analyzer-Variable class diagram](http://yuml.me/5ba285e9)
+
 Current limitations
 -------------------
 
