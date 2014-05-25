@@ -102,7 +102,7 @@ I'm sure there are many more limitations than these. These are just some that oc
 me or that I've come across while testing.
 
 * No Emacs support.
-* Does not handle constants.
+* ~~Does not handle constants.~~ *Why should it need to?*
 * Does not handle `$#foo`
 * Does not give you any warning if the code you select includes part of
   a scope, rendering the refactoring meaningless.
