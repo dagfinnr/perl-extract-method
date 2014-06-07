@@ -8,6 +8,8 @@ use aliased 'PPIx::EditorTools::ExtractMethod::Variable';
 use aliased 'PPIx::EditorTools::ExtractMethod::VariableOccurrence::Factory' => 'VariableOccurrenceFactory';
 use aliased 'PPIx::EditorTools::ExtractMethod::ScopeLocator';
 
+our $VERSION = '0.01';
+
 has 'ppi'   => ( is => 'ro', isa => 'Object' );
 
 has 'selected_range' => (

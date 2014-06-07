@@ -2,6 +2,8 @@ package PPIx::EditorTools::ExtractMethod::CodeEditor;
 
 use Moose;
 
+our $VERSION = '0.01';
+
 use PPI::Document;
 use PPIx::EditorTools;
 use PPIx::EditorTools::ExtractMethod::LineRange;
