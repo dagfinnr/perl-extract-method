@@ -71,6 +71,8 @@ has 'return_by_ref_bucket' => (
     default => sub { [] },
     handles => {
         add_to_return_by_ref_bucket  => 'push',
+        return_by_ref_bucket_sorted => 'sort',
+        return_by_ref_bucket_count => 'count',
     },
 );
 
@@ -87,6 +89,8 @@ has 'pass_by_ref_bucket' => (
     default => sub { [] },
     handles => {
         add_to_pass_by_ref_bucket  => 'push',
+        pass_by_ref_bucket_sorted => 'sort',
+        pass_by_ref_bucket_count => 'count',
     },
 );
 

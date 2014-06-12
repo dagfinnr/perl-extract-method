@@ -67,7 +67,8 @@ subtest 'can generate list of variables to pass' => sub  {
 
 subtest 'can generate list of passed variables' => sub  {
     setup();
-    is(join(',', $generator->pass_list_internal), '$baz,$qux,$inside_array');
+    my @list = $generator->pass_list_internal;
+    is(join(',', sort $generator->pass_list_internal), '$baz,$qux,$inside_array');
 };
 
 subtest 'can generate list of variables to dereference when passing' => sub  {
@@ -77,7 +78,7 @@ subtest 'can generate list of variables to dereference when passing' => sub  {
 
 subtest 'can generate list of variables to dereference after returning' => sub  {
     setup();
-    is_deeply([$generator->dereference_list_external], [[qw/%to_return %$to_return/], [qw/@inside_array @$inside_array/] ]);
+    is_deeply([$generator->dereference_list_external], [[qw/@inside_array @$inside_array/], [qw/%to_return %$to_return/]]);
 };
 
 subtest 'can generate list of variables to return' => sub  {
@@ -87,7 +88,7 @@ subtest 'can generate list of variables to return' => sub  {
 
 subtest 'can generate list of returned variables' => sub  {
     setup();
-    is(join(',', $generator->return_list_external), '$bar,$to_return,$inside_array');
+    is(join(',', $generator->return_list_external), '$bar,$inside_array,$to_return');
 };
 
 subtest 'can generate argument list' => sub  {
@@ -102,7 +103,7 @@ subtest 'can generate argument dereferencing' => sub  {
 
 subtest 'can generate return statement' => sub  {
     setup();
-    is($generator->return_statement, 'return ($bar, \%to_return, \@inside_array);');
+    is($generator->return_statement, 'return ($bar, \@inside_array, \%to_return);');
 };
 
 subtest 'can generate simplifed return statement if only one var' => sub  {
@@ -126,14 +127,14 @@ subtest 'can generate declarations of returned variables and references' => sub 
     setup();
     # Weirdest ever. Test says $bar and %to_return need to be swapped. Swap
     # them and the test fails still.
-    #is($generator->return_declarations, 'my ($to_return, $inside_array, $bar, %to_return);');
-    is($generator->return_declarations, 'my ($to_return, $inside_array, %to_return, $bar);');
+    is($generator->return_declarations, 'my ($inside_array, $to_return, $bar, %to_return);');
+#    is($generator->return_declarations, 'my ($to_return, $inside_array, %to_return, $bar);');
 };
 
 
 subtest 'can generate list of returned vars' => sub  {
     setup();
-    is($generator->returned_vars, '($bar, $to_return, $inside_array)');
+    is($generator->returned_vars, '($bar, $inside_array, $to_return)');
 };
 
 subtest 'can generate simplifed list of returned vars if only one var' => sub  {
@@ -150,10 +151,10 @@ subtest 'can generate call to method' => sub  {
     setup(); 
     is(
         $generator->method_call('new_method'),
-        'my ($to_return, $inside_array, $bar, %to_return);' . "\n" .
-        '($bar, $to_return, $inside_array) = $self->new_method($qux, $baz, \@inside_array);' . "\n" .
-        '%to_return = %$to_return;' . "\n" .
-        '@inside_array = @$inside_array;'
+        'my ($inside_array, $to_return, $bar, %to_return);' . "\n" .
+        '($bar, $inside_array, $to_return) = $self->new_method($qux, $baz, \@inside_array);' . "\n" .
+        '@inside_array = @$inside_array;' . "\n" .
+        '%to_return = %$to_return;' 
     );
 };
 
@@ -164,7 +165,7 @@ subtest 'can generate method body' => sub  {
         my @inside_array = @$inside_array;
         my %to_return = 42; $inside_array[0] = 43;
         my $foo; my $bar = $baz + $qux;
-        return ($bar, \%to_return, \@inside_array);
+        return ($bar, \@inside_array, \%to_return);
     }!;
     is(
         trim_code($generator->method_body('new_method')),
