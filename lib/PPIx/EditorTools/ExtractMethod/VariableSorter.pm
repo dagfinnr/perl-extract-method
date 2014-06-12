@@ -23,6 +23,8 @@ has 'return_bucket' => (
     default => sub { [] },
     handles => {
         add_to_return_bucket  => 'push',
+        return_bucket_sorted => 'sort',
+        return_bucket_count => 'count',
     },
 );
 
@@ -33,6 +35,8 @@ has 'pass_bucket' => (
     default => sub { [] },
     handles => {
         add_to_pass_bucket  => 'push',
+        pass_bucket_sorted => 'sort',
+        pass_bucket_count => 'count',
     },
 );
 =head2 return_and_declare_bucket
@@ -49,6 +53,8 @@ has 'return_and_declare_bucket' => (
     default => sub { [] },
     handles => {
         add_to_return_and_declare_bucket  => 'push',
+        return_and_declare_bucket_sorted => 'sort',
+        return_and_declare_bucket_count => 'count',
     },
 );
 
@@ -70,7 +76,7 @@ has 'return_by_ref_bucket' => (
 
 =head2 pass_by_ref_bucket
 
-Hashes and arrays must be passed by reference to the extracted method.
+Hashes and arrays must be passed by reference from the extracted method.
 
 =cut
 

@@ -57,7 +57,7 @@ sub return_dereference {
 sub return_declarations {
     my $self = shift;
     return 'my (' . 
-    join(', ', (map {'$' . $_->name } @{ $self->sorter->return_by_ref_bucket }), map { $_->id } @{ $self->sorter->return_and_declare_bucket }) .
+    join(', ', (map {'$' . $_->name } @{ $self->sorter->return_by_ref_bucket }), map { $_->id } $self->sorter->return_and_declare_bucket_sorted) .
     ');';
 }
 
@@ -69,7 +69,7 @@ sub returned_vars {
 
 sub return_vars {
     my $self = shift;
-    return scalar @{ $self->sorter->return_bucket } 
+    return $self->sorter->return_bucket_count
     + $self->return_by_ref_vars;
 }
 
@@ -77,12 +77,12 @@ sub return_vars {
 sub return_by_ref_vars {
     my $self = shift;
     return scalar @{ $self->sorter->return_by_ref_bucket }
-    || scalar @{ $self->sorter->return_and_declare_bucket };
+    || $self->sorter->return_and_declare_bucket_count;
 }
 
 sub pass_list_external {
     my $self = shift;
-    my @list = map {$_->id} @{ $self->sorter->pass_bucket };
+    my @list = map {$_->id} $self->sorter->pass_bucket_sorted;
     foreach my $var ( @{ $self->sorter->pass_by_ref_bucket } ) {
         push @list, $var->make_reference;
     }
@@ -91,7 +91,7 @@ sub pass_list_external {
 
 sub pass_list_internal {
     my $self = shift;
-    my @list = map {$_->id} @{ $self->sorter->pass_bucket };
+    my @list = map {$_->id} $self->sorter->pass_bucket_sorted;
     foreach my $var ( @{ $self->sorter->pass_by_ref_bucket } ) {
         push @list, '$' . $var->name;
     }
@@ -118,7 +118,7 @@ sub dereference_list_internal {
 
 sub return_list_internal {
     my $self = shift;
-    my @list = map {$_->id} @{ $self->sorter->return_bucket };
+    my @list = map {$_->id} $self->sorter->return_bucket_sorted;
     foreach my $var ( @{ $self->sorter->return_by_ref_bucket } ) {
         push @list, $var->make_reference;
     }
@@ -127,7 +127,7 @@ sub return_list_internal {
 
 sub return_list_external {
     my $self = shift;
-    my @list = map {$_->id} @{ $self->sorter->return_bucket };
+    my @list = map {$_->id} $self->sorter->return_bucket_sorted;
     foreach my $var ( @{ $self->sorter->return_by_ref_bucket } ) {
         push @list, '$' . $var->name;
     }
