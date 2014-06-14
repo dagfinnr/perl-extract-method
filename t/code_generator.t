@@ -62,7 +62,7 @@ subtest 'omits return list and adds return statement when selected code has retu
 
 subtest 'can generate list of variables to pass' => sub  {
     setup();
-    is(join(',', $generator->pass_list_external), '\@inside_array,$qux,$baz');
+    is(join(',', $generator->pass_list_external), '$baz,$qux,\@inside_array');
 };
 
 
@@ -78,7 +78,7 @@ subtest 'can generate list of variables to dereference when passing' => sub  {
 
 subtest 'can generate list of variables to dereference after returning' => sub  {
     setup();
-    is_deeply([$generator->dereference_list_external], [[qw/@inside_array @$inside_array/], [qw/%to_return %$to_return/]]);
+    is_deeply([$generator->dereference_list_external], [[qw/@inside_array @$inside_array/],[qw/%to_return %$to_return/]]);
 };
 
 subtest 'can generate list of variables to return' => sub  {
