@@ -2,6 +2,7 @@ use Test::More;
 use aliased 'PPIx::EditorTools::ExtractMethod::CodeGenerator';
 use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer';
 use aliased 'PPIx::EditorTools::ExtractMethod::VariableSorter';
+use Test::Deep;
 my ($generator, $analyzer);
 
 sub setup {
@@ -62,38 +63,43 @@ subtest 'omits return list and adds return statement when selected code has retu
 
 subtest 'can generate list of variables to pass' => sub  {
     setup();
-    is(join(',', $generator->pass_list_external), '$baz,$qux,\@inside_array');
+    is(join(',', $generator->pass_list_external), '\@inside_array,$qux,$baz');
+};
+
+subtest 'can generate list of variables to pass' => sub  {
+    setup();
+    cmp_set([$generator->pass_list_external], [qw/\@inside_array $qux $baz/]);
 };
 
 subtest 'can generate list of passed variables' => sub  {
     setup();
-    my @list = $generator->pass_list_internal;
-    is(join(',', sort $generator->pass_list_internal), '$baz,$qux,$inside_array');
+    cmp_set([$generator->pass_list_internal], [qw/$baz $inside_array $qux/]);
 };
 
 subtest 'can generate list of variables to dereference when passing' => sub  {
     setup();
-    is_deeply([$generator->dereference_list_internal], [[qw/@inside_array @$inside_array/]]);
+    cmp_set([$generator->dereference_list_internal], [[qw/@inside_array @$inside_array/]]);
 };
 
 subtest 'can generate list of variables to dereference after returning' => sub  {
     setup();
-    is_deeply([$generator->dereference_list_external], [[qw/@inside_array @$inside_array/], [qw/%to_return %$to_return/]]);
+    cmp_set([$generator->dereference_list_external], [[qw/@inside_array @$inside_array/], [qw/%to_return %$to_return/]]);
 };
 
 subtest 'can generate list of variables to return' => sub  {
     setup();
-    is(join(',', $generator->return_list_internal), '$bar,\%to_return,\@inside_array');
+    cmp_set([$generator->return_list_internal], [qw/$bar \%to_return \@inside_array/]);
 };
 
 subtest 'can generate list of returned variables' => sub  {
     setup();
-    is(join(',', $generator->return_list_external), '$bar,$inside_array,$to_return');
+    cmp_set([$generator->return_list_external], [qw/$bar $inside_array $to_return/]);
 };
 
 subtest 'can generate argument list' => sub  {
     setup();
-    is($generator->arg_list, 'my ($self, $qux, $baz, $inside_array) = @_;');
+    (my $arg_list = $generator->arg_list) =~ s/(\$qux),(\s*)(\$baz)/$3,$2$1/;
+    is($arg_list, 'my ($self, $baz, $inside_array, $qux) = @_;');
 };
 
 subtest 'can generate argument dereferencing' => sub  {
@@ -103,7 +109,8 @@ subtest 'can generate argument dereferencing' => sub  {
 
 subtest 'can generate return statement' => sub  {
     setup();
-    is($generator->return_statement, 'return ($bar, \@inside_array, \%to_return);');
+    (my $stmt = $generator->return_statement) =~ s/(..to_return),(\s*)(..inside_array)/$3,$2$1/;
+    is($stmt, 'return ($bar, \@inside_array, \%to_return);');
 };
 
 subtest 'can generate simplifed return statement if only one var' => sub  {
@@ -123,12 +130,10 @@ subtest 'can generate dereferencing after return' => sub  {
     is($generator->return_dereference, '%to_return = %$to_return;' . "\n" . '@inside_array = @$inside_array;');
 };
 
+#my $re = '([@$%]\w+,\s*){3}([@$%]\w+,\s*)';
 subtest 'can generate declarations of returned variables and references' => sub  {
     setup();
-    # Weirdest ever. Test says $bar and %to_return need to be swapped. Swap
-    # them and the test fails still.
-    is($generator->return_declarations, 'my ($inside_array, $to_return, $bar, %to_return);');
-#    is($generator->return_declarations, 'my ($to_return, $inside_array, %to_return, $bar);');
+    is($generator->return_declarations, 'my ($bar, $inside_array, $to_return, %to_return);');
 };
 
 
@@ -147,25 +152,26 @@ subtest 'can generate simplifed list of returned vars if only one var' => sub  {
     !);
     is($generator->returned_vars, '$bar');
 };
+
 subtest 'can generate call to method' => sub  {
     setup(); 
     is(
         $generator->method_call('new_method'),
-        'my ($inside_array, $to_return, $bar, %to_return);' . "\n" .
-        '($bar, $inside_array, $to_return) = $self->new_method($qux, $baz, \@inside_array);' . "\n" .
-        '@inside_array = @$inside_array;' . "\n" .
-        '%to_return = %$to_return;' 
+        'my ($bar, $inside_array, $to_return, %to_return);' . "\n" .
+        '($bar, $inside_array, $to_return) = $self->new_method($baz, $qux, \@inside_array);' . "\n" .
+        '%to_return = %$to_return;' . "\n" .
+        '@inside_array = @$inside_array;'
     );
 };
 
 subtest 'can generate method body' => sub  {
     setup(); 
     my $expected = q!sub new_method {
-        my ($self, $baz, $qux, $inside_array) = @_;
+        my ($self, $baz, $inside_array, $qux) = @_;
         my @inside_array = @$inside_array;
         my %to_return = 42; $inside_array[0] = 43;
         my $foo; my $bar = $baz + $qux;
-        return ($bar, \@inside_array, \%to_return);
+        return ($bar, \%to_return, \@inside_array);
     }!;
     is(
         trim_code($generator->method_body('new_method')),
