@@ -108,7 +108,7 @@ sub dereference_list_external {
     foreach my $var ( $self->sorter->return_by_ref_bucket_sorted  ) {
         push @list, [$var->id,  $var->type . '$' . $var->name];
     }
-    @list = sort @list;
+    @list = sort {$a->[0] cmp $b->[0]} @list;
     return @list;
 }
 
@@ -118,7 +118,7 @@ sub dereference_list_internal {
     foreach my $var ( $self->sorter->pass_by_ref_bucket_sorted ) {
         push @list, [$var->id,  $var->type . '$' . $var->name];
     }
-    @list = sort @list;
+    @list = sort {$a->[0] cmp $b->[0]} @list;
     return @list;
 }
 
