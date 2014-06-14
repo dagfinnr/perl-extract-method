@@ -2,7 +2,6 @@ use Test::More;
 use aliased 'PPIx::EditorTools::ExtractMethod::CodeGenerator';
 use aliased 'PPIx::EditorTools::ExtractMethod::Analyzer';
 use aliased 'PPIx::EditorTools::ExtractMethod::VariableSorter';
-use Test::Deep;
 my ($generator, $analyzer);
 
 sub setup {
@@ -66,34 +65,30 @@ subtest 'can generate list of variables to pass' => sub  {
     is(join(',', $generator->pass_list_external), '\@inside_array,$qux,$baz');
 };
 
-subtest 'can generate list of variables to pass' => sub  {
-    setup();
-    cmp_set([$generator->pass_list_external], [qw/\@inside_array $qux $baz/]);
-};
 
 subtest 'can generate list of passed variables' => sub  {
     setup();
-    cmp_set([$generator->pass_list_internal], [qw/$baz $inside_array $qux/]);
+    is(join(',', sort $generator->pass_list_internal), '$baz,$inside_array,$qux');
 };
 
 subtest 'can generate list of variables to dereference when passing' => sub  {
     setup();
-    cmp_set([$generator->dereference_list_internal], [[qw/@inside_array @$inside_array/]]);
+    is_deeply([$generator->dereference_list_internal], [[qw/@inside_array @$inside_array/]]);
 };
 
 subtest 'can generate list of variables to dereference after returning' => sub  {
     setup();
-    cmp_set([$generator->dereference_list_external], [[qw/@inside_array @$inside_array/], [qw/%to_return %$to_return/]]);
+    is_deeply([$generator->dereference_list_external], [[qw/@inside_array @$inside_array/], [qw/%to_return %$to_return/]]);
 };
 
 subtest 'can generate list of variables to return' => sub  {
     setup();
-    cmp_set([$generator->return_list_internal], [qw/$bar \%to_return \@inside_array/]);
+    is(join(',', $generator->return_list_internal), '$bar,\%to_return,\@inside_array');
 };
 
 subtest 'can generate list of returned variables' => sub  {
     setup();
-    cmp_set([$generator->return_list_external], [qw/$bar $inside_array $to_return/]);
+    is(join(',', $generator->return_list_external), '$bar,$inside_array,$to_return');
 };
 
 subtest 'can generate argument list' => sub  {
