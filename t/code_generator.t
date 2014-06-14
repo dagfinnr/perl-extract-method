@@ -6,6 +6,10 @@ use aliased 'PPIx::EditorTools::ExtractMethod::VariableSorter';
 
 my ($generator, $analyzer);
 
+# The setup process is a bit clumsy since it sometimes runs twice.
+# Once from the before block and once by explicit call if it needs
+# arguments.
+#
 sub setup {
     $analyzer = Analyzer->new();
     my $code = shift || q!my $qux; my $grault;
