@@ -23,10 +23,14 @@ has 'return_bucket' => (
     default => sub { [] },
     handles => {
         add_to_return_bucket  => 'push',
-        return_bucket_sorted => 'sort',
+        _return_bucket_sorted => 'sort',
         return_bucket_count => 'count',
     },
 );
+
+sub return_bucket_sorted {
+    return shift->_return_bucket_sorted( sub { _cmp_variables(@_) } );
+}
 
 has 'pass_bucket' => (
     traits  => ['Array'],
@@ -35,10 +39,14 @@ has 'pass_bucket' => (
     default => sub { [] },
     handles => {
         add_to_pass_bucket  => 'push',
-        pass_bucket_sorted => 'sort',
+        _pass_bucket_sorted => 'sort',
         pass_bucket_count => 'count',
     },
 );
+sub pass_bucket_sorted {
+    return shift->_pass_bucket_sorted( sub {_cmp_variables(@_)} );
+}
+
 =head2 return_and_declare_bucket
 
 Variables that are declared inside the extracted region and used later need to
@@ -53,10 +61,14 @@ has 'return_and_declare_bucket' => (
     default => sub { [] },
     handles => {
         add_to_return_and_declare_bucket  => 'push',
-        return_and_declare_bucket_sorted => 'sort',
+        _return_and_declare_bucket_sorted => 'sort',
         return_and_declare_bucket_count => 'count',
     },
 );
+sub return_and_declare_bucket_sorted {
+    return shift->_return_and_declare_bucket_sorted( sub { _cmp_variables(@_) } );
+}
+
 
 =head2 return_by_ref_bucket
 
@@ -71,10 +83,14 @@ has 'return_by_ref_bucket' => (
     default => sub { [] },
     handles => {
         add_to_return_by_ref_bucket  => 'push',
-        return_by_ref_bucket_sorted => 'sort',
+        _return_by_ref_bucket_sorted => 'sort',
         return_by_ref_bucket_count => 'count',
     },
 );
+sub return_by_ref_bucket_sorted {
+    return shift->_return_by_ref_bucket_sorted( sub { _cmp_variables(@_) } );
+}
+
 
 =head2 pass_by_ref_bucket
 
@@ -89,10 +105,19 @@ has 'pass_by_ref_bucket' => (
     default => sub { [] },
     handles => {
         add_to_pass_by_ref_bucket  => 'push',
-        pass_by_ref_bucket_sorted => 'sort',
+        _pass_by_ref_bucket_sorted => 'sort',
         pass_by_ref_bucket_count => 'count',
     },
 );
+sub pass_by_ref_bucket_sorted {
+    return shift->_pass_by_ref_bucket_sorted( sub { _cmp_variables(@_) } );
+}
+
+sub _cmp_variables {
+    my ($a,$b) = @_;
+    return unless defined $a && defined $b;
+    return $a->type . $a->name cmp $b->type . $b->name;
+}
 
 sub to_pass {
     my ($self, $var) = @_;
@@ -117,7 +142,7 @@ sub to_return {
 sub process_input {
     my $self = shift;
     $self->return_statement_at_end($self->analyzer_result->return_statement_at_end);
-    foreach my $var (values %{$self->analyzer_result->variables}) {
+    foreach my $var (sort values %{$self->analyzer_result->variables}) {
         next if ($var->name eq 'self');
         next if ($var->is_special_variable);
         if (!$var->declared_in_selection && !$var->used_after)

@@ -85,10 +85,9 @@ sub return_by_ref_vars {
 sub pass_list_external {
     my $self = shift;
     my @list = map {$_->id} $self->sorter->pass_bucket_sorted;
-    foreach my $var ( $self->sorter->pass_by_ref_bucket_sorted  ) {
+    foreach my $var ( $self->sorter->pass_by_ref_bucket_sorted ) {
         push @list, $var->make_reference;
     }
-    @list = sort @list;
     return @list;
 }
 
@@ -98,7 +97,6 @@ sub pass_list_internal {
     foreach my $var ( $self->sorter->pass_by_ref_bucket_sorted ) {
         push @list, '$' . $var->name;
     }
-    @list = sort @list;
     return @list;
 }
 
@@ -108,7 +106,6 @@ sub dereference_list_external {
     foreach my $var ( $self->sorter->return_by_ref_bucket_sorted  ) {
         push @list, [$var->id,  $var->type . '$' . $var->name];
     }
-    @list = sort {$a->[0] cmp $b->[0]} @list;
     return @list;
 }
 
@@ -118,7 +115,6 @@ sub dereference_list_internal {
     foreach my $var ( $self->sorter->pass_by_ref_bucket_sorted ) {
         push @list, [$var->id,  $var->type . '$' . $var->name];
     }
-    @list = sort {$a->[0] cmp $b->[0]} @list;
     return @list;
 }
 
@@ -128,7 +124,6 @@ sub return_list_internal {
     foreach my $var ( $self->sorter->return_by_ref_bucket_sorted ) {
         push @list, $var->make_reference;
     }
-    @list = sort @list;
     return @list;
 }
 
@@ -138,7 +133,6 @@ sub return_list_external {
     foreach my $var ( $self->sorter->return_by_ref_bucket_sorted ) {
         push @list, '$' . $var->name;
     }
-    @list = sort @list;
     return @list;
 }
 
