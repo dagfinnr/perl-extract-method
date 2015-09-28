@@ -92,12 +92,12 @@ subtest 'can generate list of variables to return' => sub  {
 };
 
 subtest 'can generate list of returned variables' => sub  {
-    is(join(',', $generator->return_list_external), '$bar,$inside_array,$to_return');
+    is(join(',', $generator->return_list_external), '$bar,$to_return,$inside_array');
 };
 
 subtest 'can generate argument list' => sub  {
     (my $arg_list = $generator->arg_list) =~ s/(\$qux),(\s*)(\$baz)/$3,$2$1/;
-    is($arg_list, 'my ($self, $baz, $inside_array, $qux) = @_;');
+    is($arg_list, 'my ($self, $baz, $qux, $inside_array) = @_;');
 };
 
 subtest 'can generate argument dereferencing' => sub  {
@@ -132,7 +132,7 @@ subtest 'can generate declarations of returned variables and references' => sub 
 
 
 subtest 'can generate list of returned vars' => sub  {
-    is($generator->returned_vars, '($bar, $inside_array, $to_return)');
+    is($generator->returned_vars, '($bar, $to_return, $inside_array)');
 };
 
 subtest 'can generate simplifed list of returned vars if only one var' => sub  {
@@ -150,7 +150,7 @@ subtest 'can generate call to method' => sub  {
     is(
         $generator->method_call('new_method'),
         'my ($bar, $inside_array, $to_return, %to_return);' . "\n" .
-        '($bar, $inside_array, $to_return) = $self->new_method($baz, $qux, \@inside_array);' . "\n" .
+        '($bar, $to_return, $inside_array) = $self->new_method($baz, $qux, \@inside_array);' . "\n" .
         '%to_return = %$to_return;' . "\n" .
         '@inside_array = @$inside_array;'
     );
@@ -158,7 +158,7 @@ subtest 'can generate call to method' => sub  {
 
 subtest 'can generate method body' => sub  {
     my $expected = q!sub new_method {
-        my ($self, $baz, $inside_array, $qux) = @_;
+        my ($self, $baz, $qux, $inside_array) = @_;
         my @inside_array = @$inside_array;
         my %to_return = 42; $inside_array[0] = 43;
         my $foo; my $bar = $baz + $qux;

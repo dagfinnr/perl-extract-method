@@ -17,5 +17,6 @@ WriteMakefile(
 		'aliased'           => 0,
 		'Set::Scalar'       => 0,
 		'Test::More'        => 0.98, # make sure we have subtest support
+		'Test::More::Hooks' => 0,
 	},
 );
